@@ -24,6 +24,14 @@ const SCHEMA = [
     label: "Home Page",
     sections: [
       {
+        section: "hero",
+        label: "Hero",
+        fields: [
+          { key: "headline", label: "Headline", type: "input" },
+          { key: "subheading", label: "Subheading", type: "textarea" },
+        ],
+      },
+      {
         section: "form_intro",
         label: "Form Intro",
         fields: [
@@ -35,6 +43,175 @@ const SCHEMA = [
           { key: "trust_2_desc", label: "Trust point 2 — description", type: "input" },
           { key: "trust_3_title", label: "Trust point 3 — title", type: "input" },
           { key: "trust_3_desc", label: "Trust point 3 — description", type: "input" },
+        ],
+      },
+      {
+        section: "form",
+        label: "Eligibility Form",
+        fields: [
+          { key: "step_0_title", label: "Step 0 — title", type: "input" },
+          { key: "step_0_subtitle", label: "Step 0 — subtitle", type: "input" },
+          { key: "step_1_title", label: "Step 1 — title", type: "input" },
+          { key: "step_1_subtitle", label: "Step 1 — subtitle", type: "input" },
+          { key: "step_2_title", label: "Step 2 — title", type: "input" },
+          { key: "step_2_subtitle", label: "Step 2 — subtitle", type: "input" },
+          { key: "field_duties_label", label: "Duties field — label", type: "input" },
+          { key: "field_duties_hint", label: "Duties field — hint", type: "textarea" },
+          { key: "field_ior_label", label: "IOR field — label", type: "input" },
+          { key: "field_ior_hint", label: "IOR field — hint", type: "textarea" },
+          { key: "field_ior_placeholder", label: "IOR field — placeholder", type: "input" },
+          { key: "field_countries_label", label: "Countries field — label", type: "input" },
+          { key: "field_programs_label", label: "Programs field — label", type: "input" },
+          { key: "field_programs_hint", label: "Programs field — hint", type: "input" },
+          { key: "field_cit_label", label: "CIT question — label", type: "input" },
+          { key: "field_cit_case_label", label: "CIT case number — label", type: "input" },
+          { key: "field_cit_case_placeholder", label: "CIT case number — placeholder", type: "input" },
+          { key: "field_notes_label", label: "Notes field — label", type: "input" },
+          { key: "field_notes_placeholder", label: "Notes field — placeholder", type: "textarea" },
+          { key: "button_back", label: "Back button", type: "input" },
+          { key: "button_submit", label: "Submit button", type: "input" },
+          { key: "button_submit_loading", label: "Submit loading state", type: "input" },
+          { key: "error_invalid_email", label: "Error — invalid email", type: "textarea" },
+          { key: "error_send_verification", label: "Error — send verification", type: "textarea" },
+          { key: "error_resend", label: "Error — resend", type: "textarea" },
+          { key: "error_submission", label: "Error — submission", type: "textarea" },
+          { key: "confirmation_title", label: "Confirmation — title", type: "input" },
+          { key: "confirmation_description", label: "Confirmation — description", type: "textarea" },
+          { key: "confirmation_next_steps_title", label: "Next steps — title", type: "input" },
+          { key: "confirmation_step_1_title", label: "Confirmation step 1 — title", type: "input" },
+          { key: "confirmation_step_1_desc", label: "Confirmation step 1 — description", type: "textarea" },
+          { key: "confirmation_step_2_title", label: "Confirmation step 2 — title", type: "input" },
+          { key: "confirmation_step_2_desc", label: "Confirmation step 2 — description", type: "textarea" },
+          { key: "confirmation_step_3_title", label: "Confirmation step 3 — title", type: "input" },
+          { key: "confirmation_step_3_desc", label: "Confirmation step 3 — description", type: "textarea" },
+          { key: "referral_title", label: "Referral — title", type: "input" },
+          { key: "referral_emails_placeholder", label: "Referral — emails placeholder", type: "input" },
+          { key: "referral_button", label: "Referral button", type: "input" },
+          { key: "referral_button_sending", label: "Referral button — sending", type: "input" },
+          { key: "referral_button_sent", label: "Referral button — sent", type: "input" },
+          { key: "validation_estimated_duties", label: "Validation — estimated duties", type: "input" },
+          { key: "validation_ior", label: "Validation — IOR", type: "input" },
+          { key: "validation_tariff_programs", label: "Validation — tariff programs", type: "input" },
+        ],
+      },
+      {
+        section: "tariff_programs",
+        label: "Tariff Programs",
+        fields: [
+          { key: "fentanyl_canada", label: "Fentanyl Canada program", type: "input" },
+          { key: "fentanyl_mexico", label: "Fentanyl Mexico program", type: "input" },
+          { key: "fentanyl_china", label: "Fentanyl China program", type: "input" },
+          { key: "reciprocal", label: "Reciprocal program", type: "input" },
+          { key: "de_minimis", label: "De Minimis program", type: "input" },
+        ],
+      },
+      {
+        section: "entry_status",
+        label: "Entry Status Options",
+        fields: [
+          { key: "unliquidated_label", label: "Unliquidated — label", type: "input" },
+          { key: "unliquidated_desc", label: "Unliquidated — description", type: "textarea" },
+          { key: "in_window_label", label: "In window — label", type: "input" },
+          { key: "in_window_desc", label: "In window — description", type: "textarea" },
+          { key: "expired_label", label: "Expired — label", type: "input" },
+          { key: "expired_desc", label: "Expired — description", type: "textarea" },
+          { key: "unsure_label", label: "Unsure — label", type: "input" },
+          { key: "unsure_desc", label: "Unsure — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "recovery_path",
+        label: "Recovery Paths",
+        fields: [
+          { key: "psc_label", label: "PSC — label", type: "input" },
+          { key: "psc_desc", label: "PSC — description", type: "textarea" },
+          { key: "protest_label", label: "Protest — label", type: "input" },
+          { key: "protest_desc", label: "Protest — description", type: "textarea" },
+          { key: "cit_label", label: "CIT — label", type: "input" },
+          { key: "cit_desc", label: "CIT — description", type: "textarea" },
+          { key: "unsure_label", label: "Unsure — label", type: "input" },
+          { key: "unsure_desc", label: "Unsure — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "industries",
+        label: "Industries",
+        fields: [
+          { key: "manufacturing", label: "Manufacturing", type: "input" },
+          { key: "retail", label: "Retail / E-commerce", type: "input" },
+          { key: "wholesale", label: "Wholesale / Distribution", type: "input" },
+          { key: "agriculture", label: "Agriculture / Food", type: "input" },
+          { key: "automotive", label: "Automotive", type: "input" },
+          { key: "electronics", label: "Electronics", type: "input" },
+          { key: "chemicals", label: "Chemicals / Pharmaceuticals", type: "input" },
+          { key: "textiles", label: "Textiles / Apparel", type: "input" },
+          { key: "other", label: "Other", type: "input" },
+        ],
+      },
+      {
+        section: "import_ranges",
+        label: "Import Ranges",
+        fields: [
+          { key: "under_100k", label: "Under $100K", type: "input" },
+          { key: "100k_500k", label: "$100K – $500K", type: "input" },
+          { key: "500k_1m", label: "$500K – $1M", type: "input" },
+          { key: "1m_5m", label: "$1M – $5M", type: "input" },
+          { key: "5m_25m", label: "$5M – $25M", type: "input" },
+          { key: "over_25m", label: "$25M+", type: "input" },
+        ],
+      },
+      {
+        section: "why_choose_us",
+        label: "Why Choose Us",
+        fields: [
+          { key: "label", label: "Section label", type: "input" },
+          { key: "headline", label: "Headline", type: "input" },
+          { key: "card_1_title", label: "Card 1 — title", type: "input" },
+          { key: "card_1_desc", label: "Card 1 — description", type: "textarea" },
+          { key: "card_2_title", label: "Card 2 — title", type: "input" },
+          { key: "card_2_desc", label: "Card 2 — description", type: "textarea" },
+          { key: "card_3_title", label: "Card 3 — title", type: "input" },
+          { key: "card_3_desc", label: "Card 3 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "stats",
+        label: "Statistics",
+        fields: [
+          { key: "stat_1_num", label: "Stat 1 — number", type: "input" },
+          { key: "stat_1_label", label: "Stat 1 — label", type: "input" },
+          { key: "stat_1_sub", label: "Stat 1 — subtitle", type: "input" },
+          { key: "stat_2_num", label: "Stat 2 — number", type: "input" },
+          { key: "stat_2_label", label: "Stat 2 — label", type: "input" },
+          { key: "stat_2_sub", label: "Stat 2 — subtitle", type: "input" },
+          { key: "stat_3_num", label: "Stat 3 — number", type: "input" },
+          { key: "stat_3_label", label: "Stat 3 — label", type: "input" },
+          { key: "stat_3_sub", label: "Stat 3 — subtitle", type: "input" },
+          { key: "stat_4_num", label: "Stat 4 — number", type: "input" },
+          { key: "stat_4_label", label: "Stat 4 — label", type: "input" },
+          { key: "stat_4_sub", label: "Stat 4 — subtitle", type: "input" },
+          { key: "stat_5_num", label: "Stat 5 — number", type: "input" },
+          { key: "stat_5_label", label: "Stat 5 — label", type: "input" },
+          { key: "stat_5_sub", label: "Stat 5 — subtitle", type: "input" },
+          { key: "stat_6_num", label: "Stat 6 — number", type: "input" },
+          { key: "stat_6_label", label: "Stat 6 — label", type: "input" },
+          { key: "stat_6_sub", label: "Stat 6 — subtitle", type: "input" },
+        ],
+      },
+      {
+        section: "bar_chart",
+        label: "Bar Chart",
+        fields: [
+          { key: "title", label: "Chart title", type: "input" },
+          { key: "subtitle", label: "Chart subtitle", type: "input" },
+          { key: "bar_1_label", label: "Bar 1 — label", type: "input" },
+          { key: "bar_1_amt", label: "Bar 1 — amount", type: "input" },
+          { key: "bar_2_label", label: "Bar 2 — label", type: "input" },
+          { key: "bar_2_amt", label: "Bar 2 — amount", type: "input" },
+          { key: "bar_3_label", label: "Bar 3 — label", type: "input" },
+          { key: "bar_3_amt", label: "Bar 3 — amount", type: "input" },
+          { key: "bar_4_label", label: "Bar 4 — label", type: "input" },
+          { key: "bar_4_amt", label: "Bar 4 — amount", type: "input" },
         ],
       },
       {
@@ -81,12 +258,404 @@ const SCHEMA = [
     ],
   },
   {
+    page: "nav",
+    label: "Navigation",
+    sections: [
+      {
+        section: "nav",
+        label: "Navigation Links",
+        fields: [
+          { key: "logo_text", label: "Logo text", type: "input" },
+          { key: "link_calculator", label: "Calculator link", type: "input" },
+          { key: "link_cases", label: "Cases link", type: "input" },
+          { key: "link_research", label: "Research link", type: "input" },
+          { key: "link_brokers", label: "Brokers link", type: "input" },
+          { key: "link_about", label: "About link", type: "input" },
+          { key: "button_get_started", label: "Get started button", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "footer",
+    label: "Footer",
+    sections: [
+      {
+        section: "footer",
+        label: "Footer Content",
+        fields: [
+          { key: "copyright", label: "Copyright text", type: "input" },
+          { key: "disclaimer_label", label: "Disclaimer — label", type: "input" },
+          { key: "disclaimer_text", label: "Disclaimer — text", type: "textarea" },
+          { key: "link_privacy", label: "Privacy Policy link", type: "input" },
+          { key: "link_terms", label: "Terms of Use link", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "calculator",
+    label: "Calculator Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Page title", type: "input" },
+          { key: "page_description", label: "Page description", type: "textarea" },
+        ],
+      },
+      {
+        section: "upload",
+        label: "Upload Section",
+        fields: [
+          { key: "title", label: "Upload title", type: "input" },
+          { key: "description", label: "Upload description", type: "textarea" },
+          { key: "dropzone_text", label: "Dropzone text", type: "input" },
+          { key: "dropzone_subtext", label: "Dropzone subtext", type: "input" },
+          { key: "download_template", label: "Download template link", type: "input" },
+          { key: "help_text", label: "Help text", type: "input" },
+          { key: "help_link", label: "Help link text", type: "input" },
+        ],
+      },
+      {
+        section: "results",
+        label: "Results Section",
+        fields: [
+          { key: "title", label: "Results title", type: "input" },
+          { key: "upload_new", label: "Upload new file button", type: "input" },
+          { key: "card_duties_label", label: "Duties card — label", type: "input" },
+          { key: "card_interest_label", label: "Interest card — label", type: "input" },
+          { key: "card_interest_note", label: "Interest card — note", type: "input" },
+          { key: "card_recovery_label", label: "Recovery card — label", type: "input" },
+          { key: "card_recovery_note", label: "Recovery card — note", type: "input" },
+          { key: "context_goods_value", label: "Context — goods value", type: "input" },
+          { key: "context_total_duties", label: "Context — total duties", type: "input" },
+          { key: "context_effective_rate", label: "Context — effective rate", type: "input" },
+        ],
+      },
+      {
+        section: "breakdown",
+        label: "Breakdown Section",
+        fields: [
+          { key: "title", label: "Breakdown title", type: "input" },
+          { key: "lines_title", label: "Lines title", type: "input" },
+        ],
+      },
+      {
+        section: "how_identify",
+        label: "How We Identify Section",
+        fields: [
+          { key: "title", label: "Section title", type: "input" },
+          { key: "card_hts_title", label: "HTS card — title", type: "input" },
+          { key: "card_hts_desc", label: "HTS card — description", type: "textarea" },
+          { key: "card_ordinals_title", label: "Ordinals card — title", type: "input" },
+          { key: "card_ordinals_desc", label: "Ordinals card — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "disclaimer",
+        label: "Disclaimer",
+        fields: [
+          { key: "label", label: "Disclaimer label", type: "input" },
+          { key: "text", label: "Disclaimer text", type: "textarea" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "Call to Action",
+        fields: [
+          { key: "description", label: "CTA description", type: "textarea" },
+          { key: "button", label: "CTA button", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "cases",
+    label: "Cases Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Page title", type: "input" },
+          { key: "page_description", label: "Page description", type: "textarea" },
+        ],
+      },
+      {
+        section: "stats",
+        label: "Statistics",
+        fields: [
+          { key: "stat_total_label", label: "Total cases — label", type: "input" },
+          { key: "stat_total_sub", label: "Total cases — subtitle", type: "input" },
+          { key: "stat_stayed_label", label: "Stayed cases — label", type: "input" },
+          { key: "stat_stayed_sub", label: "Stayed cases — subtitle", type: "input" },
+          { key: "stat_filed_label", label: "Filed cases — label", type: "input" },
+          { key: "stat_filed_sub", label: "Filed cases — subtitle", type: "input" },
+          { key: "stat_remand_label", label: "Remand cases — label", type: "input" },
+          { key: "stat_remand_sub", label: "Remand cases — subtitle", type: "input" },
+        ],
+      },
+      {
+        section: "atmus",
+        label: "Featured Case",
+        fields: [
+          { key: "badge", label: "Badge text", type: "input" },
+          { key: "date", label: "Date", type: "input" },
+          { key: "title", label: "Case title", type: "input" },
+          { key: "description", label: "Case description", type: "textarea" },
+          { key: "link", label: "Case link text", type: "input" },
+        ],
+      },
+      {
+        section: "search",
+        label: "Search & Filters",
+        fields: [
+          { key: "placeholder", label: "Search placeholder", type: "input" },
+          { key: "filter_all", label: "All filter", type: "input" },
+          { key: "filter_stayed", label: "Stayed filter", type: "input" },
+          { key: "filter_filed", label: "Filed filter", type: "input" },
+          { key: "filter_remand", label: "Remand filter", type: "input" },
+        ],
+      },
+      {
+        section: "table",
+        label: "Table Headers",
+        fields: [
+          { key: "header_case", label: "Case number header", type: "input" },
+          { key: "header_party", label: "Party name header", type: "input" },
+          { key: "header_filed", label: "Filed header", type: "input" },
+          { key: "header_status", label: "Status header", type: "input" },
+          { key: "header_complaint", label: "Complaint header", type: "input" },
+          { key: "no_results", label: "No results message", type: "input" },
+          { key: "pagination_prev", label: "Previous button", type: "input" },
+          { key: "pagination_next", label: "Next button", type: "input" },
+        ],
+      },
+      {
+        section: "inline_cta",
+        label: "Inline CTA",
+        fields: [
+          { key: "title", label: "Title", type: "input" },
+          { key: "description", label: "Description", type: "textarea" },
+          { key: "button", label: "Button text", type: "input" },
+        ],
+      },
+      {
+        section: "attribution",
+        label: "Attribution",
+        fields: [
+          { key: "text", label: "Attribution text", type: "textarea" },
+          { key: "updated", label: "Updated label", type: "input" },
+          { key: "note", label: "Update note", type: "input" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "Call to Action",
+        fields: [
+          { key: "title", label: "CTA title", type: "input" },
+          { key: "description", label: "CTA description", type: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "research",
+    label: "Research Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Page title", type: "input" },
+          { key: "page_description", label: "Page description", type: "textarea" },
+        ],
+      },
+      {
+        section: "timeline",
+        label: "Timeline",
+        fields: [
+          { key: "title", label: "Timeline title", type: "input" },
+          { key: "description", label: "Timeline description", type: "textarea" },
+        ],
+      },
+      {
+        section: "injunction",
+        label: "Injunction Notice",
+        fields: [
+          { key: "title", label: "Injunction title", type: "input" },
+          { key: "p1", label: "Paragraph 1", type: "textarea" },
+          { key: "p2", label: "Paragraph 2", type: "textarea" },
+          { key: "p3", label: "Paragraph 3", type: "textarea" },
+        ],
+      },
+      {
+        section: "sources",
+        label: "Sources",
+        fields: [
+          { key: "title", label: "Sources title", type: "input" },
+          { key: "note_label", label: "Note label", type: "input" },
+          { key: "note_text", label: "Note text", type: "textarea" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "Call to Action",
+        fields: [
+          { key: "title", label: "CTA title", type: "input" },
+          { key: "button", label: "CTA button", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "data_guide",
+    label: "Data Guide Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Page title", type: "input" },
+          { key: "page_description", label: "Page description", type: "textarea" },
+        ],
+      },
+      {
+        section: "steps",
+        label: "Steps",
+        fields: [
+          { key: "step_1_label", label: "Step 1 — label", type: "input" },
+          { key: "step_1_title", label: "Step 1 — title", type: "input" },
+          { key: "step_1_description", label: "Step 1 — description", type: "textarea" },
+          { key: "step_2_label", label: "Step 2 — label", type: "input" },
+          { key: "step_2_title", label: "Step 2 — title", type: "input" },
+          { key: "step_2_description", label: "Step 2 — description", type: "textarea" },
+          { key: "step_3_label", label: "Step 3 — label", type: "input" },
+          { key: "step_3_title", label: "Step 3 — title", type: "input" },
+          { key: "step_3_description", label: "Step 3 — description", type: "textarea" },
+          { key: "step_4_label", label: "Step 4 — label", type: "input" },
+          { key: "step_4_title", label: "Step 4 — title", type: "input" },
+          { key: "step_4_description", label: "Step 4 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "fields",
+        label: "Required & Optional Fields",
+        fields: [
+          { key: "required_title", label: "Required fields — title", type: "input" },
+          { key: "required_description", label: "Required fields — description", type: "textarea" },
+          { key: "optional_title", label: "Optional fields — title", type: "input" },
+          { key: "optional_description", label: "Optional fields — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "date_range",
+        label: "Date Range",
+        fields: [
+          { key: "title", label: "Date range title", type: "input" },
+          { key: "description", label: "Date range description", type: "textarea" },
+        ],
+      },
+      {
+        section: "help",
+        label: "Help Section",
+        fields: [
+          { key: "title", label: "Help title", type: "input" },
+          { key: "description", label: "Help description", type: "textarea" },
+          { key: "button_contact", label: "Contact button", type: "input" },
+          { key: "button_get_started", label: "Get started button", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "brokers",
+    label: "Brokers Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Page title", type: "input" },
+          { key: "page_description", label: "Page description", type: "textarea" },
+        ],
+      },
+      {
+        section: "steps",
+        label: "Steps",
+        fields: [
+          { key: "step_1_title", label: "Step 1 — title", type: "input" },
+          { key: "step_1_desc", label: "Step 1 — description", type: "textarea" },
+          { key: "step_2_title", label: "Step 2 — title", type: "input" },
+          { key: "step_2_desc", label: "Step 2 — description", type: "textarea" },
+          { key: "step_3_title", label: "Step 3 — title", type: "input" },
+          { key: "step_3_desc", label: "Step 3 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "benefits",
+        label: "Benefits",
+        fields: [
+          { key: "benefit_1_title", label: "Benefit 1 — title", type: "input" },
+          { key: "benefit_1_desc", label: "Benefit 1 — description", type: "textarea" },
+          { key: "benefit_2_title", label: "Benefit 2 — title", type: "input" },
+          { key: "benefit_2_desc", label: "Benefit 2 — description", type: "textarea" },
+          { key: "benefit_3_title", label: "Benefit 3 — title", type: "input" },
+          { key: "benefit_3_desc", label: "Benefit 3 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "Call to Action",
+        fields: [
+          { key: "title", label: "CTA title", type: "input" },
+          { key: "description", label: "CTA description", type: "textarea" },
+          { key: "button", label: "CTA button", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
     page: "about",
     label: "About Page",
     sections: [
       {
         section: "hero",
         label: "Hero",
+        fields: [
+          { key: "label", label: "Section label", type: "input" },
+          { key: "headline", label: "Headline", type: "input" },
+          { key: "description", label: "Description", type: "textarea" },
+        ],
+      },
+      {
+        section: "mission",
+        label: "Mission",
+        fields: [
+          { key: "label", label: "Section label", type: "input" },
+          { key: "headline", label: "Headline", type: "input" },
+          { key: "description", label: "Description", type: "textarea" },
+        ],
+      },
+      {
+        section: "approach",
+        label: "Approach",
+        fields: [
+          { key: "label", label: "Section label", type: "input" },
+          { key: "headline", label: "Headline", type: "input" },
+          { key: "description", label: "Description", type: "textarea" },
+        ],
+      },
+      {
+        section: "impact",
+        label: "Impact",
         fields: [
           { key: "label", label: "Section label", type: "input" },
           { key: "headline", label: "Headline", type: "input" },
@@ -486,7 +1055,10 @@ function SequenceBuilder() {
     setEditing(seq.id);
     setForm({ name: seq.name, description: seq.description || "", enabled: seq.enabled });
     const sorted = (seq.email_sequence_steps || []).sort((a, b) => a.step_order - b.step_order);
-    setSteps(sorted.map((s) => ({ template_id: s.template_id, delay_hours: s.delay_hours })));
+    setSteps(sorted.map((s) => {
+      const totalMin = s.delay_minutes ?? (s.delay_hours || 0) * 60;
+      return { template_id: s.template_id, delay_days: Math.floor(totalMin / 1440), delay_hours: Math.floor((totalMin % 1440) / 60), delay_mins: totalMin % 60 };
+    }));
     setMsg("");
   };
 
@@ -497,7 +1069,7 @@ function SequenceBuilder() {
     setMsg("");
   };
 
-  const addStep = () => setSteps([...steps, { template_id: templates[0]?.id || "", delay_hours: 24 }]);
+  const addStep = () => setSteps([...steps, { template_id: templates[0]?.id || "", delay_days: 1, delay_hours: 0, delay_mins: 0 }]);
 
   const updateStep = (i, field, val) => {
     const updated = [...steps];
@@ -533,7 +1105,7 @@ function SequenceBuilder() {
 
     // Insert steps
     if (steps.length > 0) {
-      const stepRows = steps.map((s, i) => ({ sequence_id: seqId, template_id: s.template_id, step_order: i + 1, delay_hours: parseInt(s.delay_hours) || 0 }));
+      const stepRows = steps.map((s, i) => ({ sequence_id: seqId, template_id: s.template_id, step_order: i + 1, delay_minutes: (parseInt(s.delay_days) || 0) * 1440 + (parseInt(s.delay_hours) || 0) * 60 + (parseInt(s.delay_mins) || 0) }));
       const { error } = await supabase.from("email_sequence_steps").insert(stepRows);
       if (error) { setMsg("Error saving steps: " + error.message); setSaving(false); return; }
     }
@@ -593,10 +1165,14 @@ function SequenceBuilder() {
               <select value={step.template_id} onChange={(e) => updateStep(i, "template_id", e.target.value)} style={{ ...inputStyle, flex: 1, width: "auto" }}>
                 {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
                 <span style={{ fontSize: 11, color: M, whiteSpace: "nowrap" }}>Delay:</span>
-                <input type="number" value={step.delay_hours} onChange={(e) => updateStep(i, "delay_hours", e.target.value)} style={{ ...inputStyle, width: 60, textAlign: "center" }} min="0" />
-                <span style={{ fontSize: 11, color: M }}>hrs</span>
+                <input type="number" value={step.delay_days} onChange={(e) => updateStep(i, "delay_days", e.target.value)} style={{ ...inputStyle, width: 44, textAlign: "center", padding: "6px 4px" }} min="0" />
+                <span style={{ fontSize: 10, color: M }}>d</span>
+                <input type="number" value={step.delay_hours} onChange={(e) => updateStep(i, "delay_hours", e.target.value)} style={{ ...inputStyle, width: 44, textAlign: "center", padding: "6px 4px" }} min="0" max="23" />
+                <span style={{ fontSize: 10, color: M }}>h</span>
+                <input type="number" value={step.delay_mins} onChange={(e) => updateStep(i, "delay_mins", e.target.value)} style={{ ...inputStyle, width: 44, textAlign: "center", padding: "6px 4px" }} min="0" max="59" />
+                <span style={{ fontSize: 10, color: M }}>m</span>
               </div>
               <button onClick={() => moveStep(i, -1)} disabled={i === 0} style={{ background: "none", border: "none", cursor: i > 0 ? "pointer" : "default", opacity: i > 0 ? 1 : 0.3, fontSize: 16 }}>▲</button>
               <button onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1} style={{ background: "none", border: "none", cursor: i < steps.length - 1 ? "pointer" : "default", opacity: i < steps.length - 1 ? 1 : 0.3, fontSize: 16 }}>▼</button>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase, handleAuthCallback } from "./supabaseClient.js";
-import { useEditableContent } from "./useEditableContent.js";
+import { useEditableContent, EditModeProvider, EditModeToolbar } from "./useEditableContent.js";
 
 /* ─── Scroll-reveal hook ─── */
 function useScrollReveal(stagger = 80) {
@@ -27,15 +27,17 @@ function useScrollReveal(stagger = 80) {
 const D = "#1a1a2e", M = "#8a8780", B = "#e8e6e1", BG = "#faf9f6";
 const F = "'DM Sans', system-ui, sans-serif";
 const S = "'DM Sans', system-ui, sans-serif";
-const ACC = "#ff6b5a";
-const ACCSOFT = "rgba(255,107,90,0.10)";
+const ACC = "#f25650";
+const ACCSOFT = "rgba(242,86,80,0.10)";
 const DARK = "#0c0e1a";
 const DARKCARD = "#141627";
 const DARKBORDER = "#1e2140";
 const DARKMUTED = "#8a8da8";
 
 /* ─── SHARED MOBILE CSS (used on every page) ─── */
-const SHARED_MOBILE_CSS = `*{box-sizing:border-box;margin:0;padding:0}:root{--cut-sm:15px;--cut-lg:75px}input:focus,textarea:focus{border-color:${D} !important;outline:none}button{cursor:pointer}::selection{background:rgba(255,107,90,0.25)}body{background:#f5f4f0}
+const SHARED_MOBILE_CSS = `*{box-sizing:border-box;margin:0;padding:0}:root{--cut-sm:15px;--cut-lg:75px}input:focus,textarea:focus{border-color:${D} !important;outline:none}button{cursor:pointer}::selection{background:rgba(242,86,80,0.25)}body{background:#f5f4f0}
+.btn-acc{transition:transform 0.18s ease,box-shadow 0.18s ease,filter 0.18s ease}.btn-acc:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(242,86,80,0.35) !important;filter:brightness(1.08)}.btn-acc:active{transform:translateY(0);filter:brightness(0.97)}
+@media(max-width:768px){.phase2-layout{flex-direction:column !important;gap:24px !important}.phase2-sidebar{flex:unset !important;position:static !important;width:100% !important;text-align:center}}
 .mobile-menu-btn{display:none !important}
 .nav-links-desktop{display:flex !important}
 .nav-links-mobile{display:none !important}
@@ -78,6 +80,12 @@ const SHARED_MOBILE_CSS = `*{box-sizing:border-box;margin:0;padding:0}:root{--cu
   .subpage-content{padding:40px 16px 60px !important}
   .subpage-content>div{max-width:100% !important;overflow-x:hidden}
   .subpage-content svg{max-width:100%;height:auto}
+  .appeals-timeline-wrap{overflow-x:visible !important}
+  .appeals-timeline{display:flex !important;flex-direction:column !important;gap:0 !important;min-width:unset !important;padding-left:24px !important}
+  .appeals-timeline>div:not(.appeals-line-h):not(.appeals-line-v){padding-top:0 !important;padding-right:0 !important;padding-left:0 !important;padding-bottom:20px !important;margin-bottom:0 !important}
+  .appeals-dot{left:-30px !important;top:2px !important}
+  .appeals-line-h{display:none !important}
+  .appeals-line-v{display:block !important}
   .research-donut-row{flex-direction:column !important;align-items:center !important;gap:20px !important}
   .research-donut-row svg{max-width:180px !important}
   .research-rates-legend{flex-wrap:wrap !important}
@@ -90,9 +98,13 @@ const SHARED_MOBILE_CSS = `*{box-sizing:border-box;margin:0;padding:0}:root{--cu
   .cases-cards-mobile{display:flex !important}
 }
 @media(max-width:480px){
-  .grid-2col-stats{grid-template-columns:1fr !important}
-  .grid-4col{grid-template-columns:1fr !important}
+  .grid-2col-stats{grid-template-columns:1fr 1fr !important;gap:8px !important}
+  .grid-2col-stats>div{padding:14px 14px !important}
+  .grid-4col{grid-template-columns:1fr 1fr !important;gap:8px !important}
+  .grid-4col>div{padding:16px 14px !important}
   .calc-results-3col{grid-template-columns:1fr !important}
+  .research-grid-2{grid-template-columns:1fr !important;gap:12px !important}
+  .research-4col{grid-template-columns:1fr 1fr !important;gap:8px !important}
 }`;
 
 const ik = { strokeLinecap:"round", strokeLinejoin:"round", fill:"none" };
@@ -116,20 +128,25 @@ const IcShield = (p) => <Ic {...p}><path d="M12 2.5L3.5 6.5v5c0 5.5 3.5 9.5 8.5 
 const IcClock = (p) => <Ic {...p}><circle cx="12" cy="12" r="9.5" strokeWidth="1.6"/><path d="M12 6.5v6l4 2.5" strokeWidth="1.8"/></Ic>;
 
 function Logo({size=32}) {
-  return <img src="/icon.png" alt="Rewind Tariffs" width={size} height={size} style={{borderRadius:size*0.22,display:"block"}}/>;
+  return <img src="/icon.png" alt="Rewind Tariffs" width={size} height={size} style={{display:"block"}}/>;
 }
 function LogoFull({height=32,invert=false}) {
   return <img src="/logo-full.png" alt="Rewind Tariffs" height={height} style={{display:"block",...(invert?{filter:"brightness(0) invert(1)"}:{})}}/>;
 }
 
 /* ─── GOOGLE SHEETS WEBHOOK ─── */
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzmBu0uqO1T46S9UsIyhBGS0m-Wt7tGlTERYuPanim65q5aJyNYFkEXOJuG9ajLuCV9/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzKYB5TA0BHSojGBoqlOyB6TuFftPH4CXtEz8lca5FZetXooem7Tdj1Pj9_obgcaZp_eQ/exec";
 
 function generateRefCode() {
   return "RW-" + Date.now().toString(36).toUpperCase();
 }
 
+const FORM_LOAD_TIME = Date.now();
+
 async function submitToSheet(ctx, action = "create") {
+  // Bot checks: honeypot and time-based
+  if (ctx._hp) return { ok: false, ref: "", bot: true };
+  if (Date.now() - (ctx._loadedAt || FORM_LOAD_TIME) < 3000) return { ok: false, ref: "", bot: true };
   const body = {
     action,
     refCode: ctx.refCode || "",
@@ -148,8 +165,8 @@ async function submitToSheet(ctx, action = "create") {
     hasAceAccess: ctx.ace ? "Yes" : "No",
     registrantType: ctx.rt || "",
     estDuties: ctx.est || "",
-    bondImpact: ctx.bondInc || "",
-    bondAmount: ctx.bondAmt || "",
+    citFiled: ctx.citFiled || "",
+    citCase: ctx.citCase || "",
     collateral: ctx.collateral || "",
     surety: ctx.surety || "",
     dateRange: ctx.dr || "",
@@ -187,7 +204,7 @@ function clearCtxFromStorage() {
 async function sendMagicLink(email) {
   if (!supabase) return { ok: false, error: "Supabase not configured" };
   // Use clean URL without hash or query params for redirect
-  const redirectUrl = window.location.origin + window.location.pathname;
+  const redirectUrl = window.location.origin + window.location.pathname + "#assessment";
   console.log("[Rewind] Sending magic link, redirect:", redirectUrl);
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -264,33 +281,6 @@ const unliqCut = new Date(Date.now()-314*864e5);
 const dE = dFrom(earlyExp);
 const dC = dFrom(citDead);
 
-const TARIFF_SUBS = [
-  "Fentanyl Tariffs — Canada (EO 14193)",
-  "Fentanyl Tariffs — Mexico (EO 14194)",
-  "Fentanyl Tariffs — China (EO 14195)",
-  "Reciprocal / Liberation Day Tariffs (EO 14257)",
-  "De Minimis Tariffs — China / Hong Kong",
-];
-
-const ENTRY_STATUSES = [
-  {id:"unliquidated",label:"Unliquidated",desc:`Entered after ~${fmt(unliqCut)} — not yet finalized. PSC corrections available.`},
-  {id:"in_window",label:"Liquidated — within 180-day protest window",desc:`Finalized but within protest deadline. Earliest windows expire ${fmt(earlyExp)}${dE>0?` (${dE} days)`:``}.`},
-  {id:"expired",label:"Liquidated — protest window expired",desc:`CIT litigation available — deadline ${fmt(citDead)} (${dC} days).`},
-  {id:"unsure",label:"I'm not sure",desc:"We'll help determine your dates and deadlines."},
-];
-
-function getRec(s) {
-  if (s==="unliquidated") return {path:"Post-Summary Correction",desc:"Your entries may qualify for PSC corrections in ACE to remove IEEPA duty lines before liquidation. We can connect you with qualified counsel or a cash buyer.",color:"#3b6fc0",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#c4d5f0"};
-  if (s==="in_window") return {path:"Formal CBP Protest",desc:"A protest under 19 U.S.C. §1514 may be available to challenge the duty amount. We can refer you to experienced trade counsel or a cash buyer.",color:"#3b6fc0",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#c4d5f0"};
-  if (s==="expired") return {path:"CIT Litigation",desc:"Your CBP protest window may have closed, but CIT litigation is available (2-year limit). We can connect you with trade litigation attorneys or a cash buyer.",color:"#8a5a20",bg:"linear-gradient(135deg,#fef9ee,#fdf5e0)",border:"#e8dbb8"};
-  return {path:"We'll help identify your best path",desc:"We'll review your situation and connect you with the right professionals or a cash buyer to pursue your refund.",color:"#3a5a8a",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#d0dbf0"};
-}
-
-/* ═══════════════════════════════════════════════════════
-   MAIN
-═══════════════════════════════════════════════════════ */
-const INDUSTRIES = ["Manufacturing","Retail / E-commerce","Wholesale / Distribution","Agriculture / Food","Automotive","Electronics","Chemicals / Pharmaceuticals","Textiles / Apparel","Other"];
-const IMPORT_RANGES = ["Under $100K","$100K – $500K","$500K – $1M","$1M – $5M","$5M – $25M","$25M+"];
 
 const selectStyle = {width:"100%",padding:"12px 14px",border:`2px solid ${B}`,borderRadius:10,fontFamily:F,fontSize:14,color:D,background:"#fff",outline:"none",appearance:"none",backgroundImage:`url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238a8780' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"};
 
@@ -334,11 +324,11 @@ function FaqSection({ contentGetter }) {
             Frequently asked questions
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,transform:expanded?"rotate(180deg)":"rotate(0)",transition:"transform 0.3s ease"}}><path d="M6 9l6 6 6-6" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
-          {!expanded&&<div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:560,margin:"0 auto",lineHeight:"1.6"}}>Everything you need to know about IEEPA tariff refunds and how we can help.</div>}
+          {!expanded&&<div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:560,margin:"0 auto",lineHeight:"1.6"}}>Everything you need to know about IEEPA tariff refunds.</div>}
         </button>
         {expanded&&(
           <>
-            <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:560,margin:"-36px auto 48px",lineHeight:"1.6",textAlign:"center"}}>Everything you need to know about IEEPA tariff refunds and how we can help.</div>
+            <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:560,margin:"-36px auto 48px",lineHeight:"1.6",textAlign:"center"}}>Everything you need to know about IEEPA tariff refunds.</div>
             <div style={{background:DARKCARD,borderRadius:10,border:"1px solid "+DARKBORDER,padding:"8px 32px"}}>
               {faqItems.map((item,i)=><FaqItem key={i} q={item.q} a={item.a}/>)}
             </div>
@@ -351,12 +341,74 @@ function FaqSection({ contentGetter }) {
 
 function LandingPage({ onNavigate }) {
   const c = useEditableContent("home");
+  const n = useEditableContent("nav");
   const newsStories = useNews();
-  const [phase, setPhase] = useState("intro"); // "intro" | "emailVerify" | "detail"
-  const [step, setStep] = useState(-1);
-  const [ctx, setCtx] = useState({});
+
+  // Build tariff programs from content
+  const TARIFF_SUBS = [
+    c("tariff_programs.fentanyl_canada"),
+    c("tariff_programs.fentanyl_mexico"),
+    c("tariff_programs.fentanyl_china"),
+    c("tariff_programs.reciprocal"),
+    c("tariff_programs.de_minimis"),
+  ];
+
+  // Build industries from content
+  const INDUSTRIES = [
+    c("industries.manufacturing"),
+    c("industries.retail"),
+    c("industries.wholesale"),
+    c("industries.agriculture"),
+    c("industries.automotive"),
+    c("industries.electronics"),
+    c("industries.chemicals"),
+    c("industries.textiles"),
+    c("industries.other"),
+  ];
+
+  // Build import ranges from content
+  const IMPORT_RANGES = [
+    c("import_ranges.under_100k"),
+    c("import_ranges.100k_500k"),
+    c("import_ranges.500k_1m"),
+    c("import_ranges.1m_5m"),
+    c("import_ranges.5m_25m"),
+    c("import_ranges.over_25m"),
+  ];
+
+  // Build entry statuses from content
+  const ENTRY_STATUSES = [
+    {id:"unliquidated",label:c("entry_status.unliquidated_label"),desc:c("entry_status.unliquidated_desc")},
+    {id:"in_window",label:c("entry_status.in_window_label"),desc:c("entry_status.in_window_desc")},
+    {id:"expired",label:c("entry_status.expired_label"),desc:c("entry_status.expired_desc")},
+    {id:"unsure",label:c("entry_status.unsure_label"),desc:c("entry_status.unsure_desc")},
+  ];
+
+  // Get recovery path from content
+  const getRec = (s) => {
+    if (s==="unliquidated") return {path:c("recovery_path.psc_label"),desc:c("recovery_path.psc_desc"),color:"#3b6fc0",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#c4d5f0"};
+    if (s==="in_window") return {path:c("recovery_path.protest_label"),desc:c("recovery_path.protest_desc"),color:"#3b6fc0",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#c4d5f0"};
+    if (s==="expired") return {path:c("recovery_path.cit_label"),desc:c("recovery_path.cit_desc"),color:"#8a5a20",bg:"linear-gradient(135deg,#fef9ee,#fdf5e0)",border:"#e8dbb8"};
+    return {path:c("recovery_path.unsure_label"),desc:c("recovery_path.unsure_desc"),color:"#3a5a8a",bg:"linear-gradient(135deg,#f0f4ff,#e8eeff)",border:"#d0dbf0"};
+  };
+
+  const [phase, setPhase] = useState(() => {
+    try { const p = localStorage.getItem(REWIND_PHASE_KEY); if (p === "submitted") return "detail"; } catch(e) {}
+    return "intro";
+  }); // "intro" | "emailVerify" | "detail"
+  const [step, setStep] = useState(() => {
+    try { if (localStorage.getItem(REWIND_PHASE_KEY) === "submitted") return 3; } catch(e) {}
+    return -1;
+  });
+  const [ctx, setCtx] = useState(() => {
+    try { if (localStorage.getItem(REWIND_PHASE_KEY) === "submitted") { const s = loadCtxFromStorage(); if (s) return {...s, _loadedAt: Date.now()}; } } catch(e) {}
+    return {_loadedAt: Date.now()};
+  });
   const [showReset, setShowReset] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [referralEmails, setReferralEmails] = useState("");
+  const [referralSending, setReferralSending] = useState(false);
+  const [referralSent, setReferralSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
@@ -397,18 +449,19 @@ function LandingPage({ onNavigate }) {
   const next = () => {
     setStep(s => {
       const nextStep = s + 1;
-      if (ctx.refCode) {
+      if (ctx.refCode && nextStep < totalSteps) {
         submitToSheet({ ...ctx, _step: nextStep }, "update");
       }
       return nextStep;
     });
   };
   const back = () => { setMissingFields([]); setStep(s=>Math.max(0,s-1)); };
-  const startOver = () => { setCtx({}); setStep(0); setShowReset(false); setPhase("intro"); clearCtxFromStorage(); setMagicLinkError(""); if(supabase) supabase.auth.signOut().catch(()=>{}); };
+  const startOver = () => { setCtx({_loadedAt: Date.now()}); setStep(-1); setShowReset(false); setPhase("intro"); clearCtxFromStorage(); setMagicLinkError(""); if(supabase) supabase.auth.signOut().catch(()=>{}); };
   const scrollToForm = () => { setTimeout(()=>formRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),50); };
   const scrollTo = (ref) => { ref.current?.scrollIntoView({behavior:"smooth",block:"start"}); };
 
   const handleIntroSubmit = async () => {
+    if (!isValidEmail(ctx.em)) { setMagicLinkError(c("form.error_invalid_email")); return; }
     setSubmitting(true); setMagicLinkError("");
     const ref = generateRefCode();
     const newCtx = { ...ctx, refCode: ref, _step: "intro" };
@@ -426,7 +479,7 @@ function LandingPage({ onNavigate }) {
         setResendCooldown(60);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       } else {
-        setMagicLinkError(res.error || "Could not send verification email. Please try again.");
+        setMagicLinkError(res.error || c("form.error_send_verification"));
       }
     } else {
       // Supabase not configured — skip verification (dev/fallback mode)
@@ -443,7 +496,7 @@ function LandingPage({ onNavigate }) {
     if (res.ok) {
       setResendCooldown(60);
     } else {
-      setMagicLinkError(res.error || "Could not resend. Please try again.");
+      setMagicLinkError(res.error || c("form.error_resend"));
     }
   };
 
@@ -453,24 +506,25 @@ function LandingPage({ onNavigate }) {
     setMagicLinkError("");
   };
 
-  const introCanSubmit = !!(ctx.company && ctx.fn && ctx.em && ctx.rt);
+  const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e||"");
+  const introCanSubmit = !!(ctx.company && ctx.fn && ctx.em && isValidEmail(ctx.em) && ctx.rt);
 
   const totalSteps = 3;
   const isFinal = step === totalSteps;
   const inForm = step >= 0 && phase === "detail";
 
   const TITLES = [
-    {t:"Import details",s:"Tell us about your entries and tariff programs."},
-    {t:"Duties & bonds",s:"Estimate your recovery potential."},
-    {t:"Review & submit",s:"Confirm your details and submit."},
+    {t:c("form.step_0_title"),s:c("form.step_0_subtitle")},
+    {t:c("form.step_1_title"),s:c("form.step_1_subtitle")},
+    {t:c("form.step_2_title"),s:c("form.step_2_subtitle")},
   ];
   const getMissing = (s) => {
     const m = [];
     if (s===0) {
-      if (!ctx.ior) m.push("IOR number");
-      if ((ctx.tp||[]).length===0) m.push("Tariff programs");
+      if (!ctx.est) m.push(c("form.validation_estimated_duties"));
+      if (!ctx.ior) m.push(c("form.validation_ior"));
+      if ((ctx.tp||[]).length===0) m.push(c("form.validation_tariff_programs"));
     } else if (s===1) {
-      if (!ctx.est) m.push("Estimated duties paid");
     }
     return m;
   };
@@ -504,59 +558,50 @@ function LandingPage({ onNavigate }) {
       if (filteredSel.length!==sel.length) up({tp:filteredSel});
       return (
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>{c.E("form.field_duties_label")}</label><div style={{fontFamily:F,fontSize:11,color:M,marginBottom:4}}>Check your <a href="https://ace.cbp.dhs.gov/" target="_blank" rel="noopener noreferrer" style={{color:D,fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>ACE portal</a> — HTS codes 9903.01.xx / 9903.02.xx</div><div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontFamily:F,fontSize:15,color:D,pointerEvents:"none"}}>$</span><input value={ctx.est?(Number(ctx.est.replace(/[^0-9.]/g,""))||0).toLocaleString("en-US"):""} onChange={e=>{const raw=e.target.value.replace(/[^0-9.]/g,"");up({est:raw});}} placeholder="0.00" style={{...inputStyle,paddingLeft:28}}/></div></div>
           <div>
-            <label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>Importer of Record (IOR) number</label>
+            <label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>{c.E("form.field_ior_label")}</label>
             <div style={{fontFamily:F,fontSize:11,color:M,marginBottom:4}}>Found on CBP Form 7501 or your <a href="https://ace.cbp.dhs.gov/" target="_blank" rel="noopener noreferrer" style={{color:D,fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>ACE portal</a>. If you don't have portal access, write "No access" in the field below.</div>
-            <input value={ctx.ior||""} onChange={e=>up({ior:e.target.value})} placeholder="e.g. 12-3456789 or No access" style={inputStyle}/>
-            <div style={{padding:"12px 14px",background:"rgba(96,165,250,0.06)",borderRadius:10,border:"1px solid rgba(96,165,250,0.15)",marginTop:10}}>
-              <div style={{fontFamily:F,fontSize:12,color:D,lineHeight:"1.5"}}>You'll need an ACE report to calculate your refund. <a href="#data-guide" target="_blank" rel="noopener noreferrer" style={{color:ACC,fontWeight:600,textDecoration:"none"}}>See what data you need and how to pull it →</a></div>
-            </div>
+            <input value={ctx.ior||""} onChange={e=>up({ior:e.target.value})} placeholder={c("form.field_ior_placeholder")} style={inputStyle}/>
           </div>
           <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:6}}>Countries of origin</label>
             <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{["China","Canada","Mexico","EU","Other"].map(c=>{const s=countries.includes(c);return<button key={c} onClick={()=>{const cur=ctx.co||[];up({co:s?cur.filter(x=>x!==c):[...cur,c]});}} style={{padding:"8px 14px",borderRadius:8,border:s?`2px solid ${D}`:`2px solid ${B}`,background:s?BG:"#fff",fontFamily:F,fontSize:13,fontWeight:s?600:400,color:s?D:M,cursor:"pointer"}}>{c}</button>;})}</div>
           </div>
           <div style={{borderTop:"1px solid "+B,paddingTop:14,marginTop:4}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D,marginBottom:10}}>Which tariff programs apply?</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D,marginBottom:10}}>{c.E("form.field_programs_label")}</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{relevantPrograms.map(s=>{const on=filteredSel.includes(s);return<button key={s} onClick={()=>{const n=on?filteredSel.filter(x=>x!==s):[...filteredSel,s];up({tp:n});}} style={{padding:"10px 16px",borderRadius:10,border:"none",background:on?D:"#f0efec",fontFamily:F,fontSize:13,fontWeight:on?600:400,color:on?"#fff":M,cursor:"pointer",transition:"all 0.15s",display:"flex",alignItems:"center",gap:6}}>{on&&<IcCheck size={13} color="#fff" strokeWidth={3}/>}{s}</button>;})}</div>
-            {countries.length===0&&<div style={{fontFamily:F,fontSize:11,color:M,marginTop:6}}>Select countries above to filter relevant programs</div>}
+            {countries.length===0&&<div style={{fontFamily:F,fontSize:11,color:M,marginTop:6}}>{c.E("form.field_programs_hint")}</div>}
           </div>
         </div>
       );
     }
 
-    /* ── Step 1: Duties & bonds (simplified) ── */
+    /* ── Step 1: Recovery details ── */
     if (step===1) return (
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
-        <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>Estimated total IEEPA duties paid</label><div style={{fontFamily:F,fontSize:11,color:M,marginBottom:4}}>Check your <a href="https://ace.cbp.dhs.gov/" target="_blank" rel="noopener noreferrer" style={{color:D,fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>ACE portal</a> — HTS codes 9903.01.xx / 9903.02.xx</div><input value={ctx.est||""} onChange={e=>up({est:e.target.value})} placeholder="$0.00" style={inputStyle}/></div>
-        <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>Date range of affected imports</label><input value={ctx.dr||""} onChange={e=>up({dr:e.target.value})} placeholder="e.g. Feb 2025 – Feb 2026" style={inputStyle}/></div>
-        <div style={{borderTop:"1px solid "+B,paddingTop:14,marginTop:4}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D,marginBottom:8}}>Were your customs bonds affected by IEEPA tariffs?</div>
+        <div>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D,marginBottom:8}}>{c.E("form.field_cit_label")}</div>
           <div style={{display:"flex",gap:8}}>
-            {[["Yes","yes"],["No / Not sure","no"]].map(([label,val])=><button key={val} onClick={()=>up({bondInc:val})} style={{flex:1,padding:"12px 16px",borderRadius:10,border:ctx.bondInc===val?`2px solid ${D}`:`2px solid ${B}`,background:ctx.bondInc===val?BG:"#fff",fontFamily:F,fontSize:13,fontWeight:ctx.bondInc===val?600:400,color:ctx.bondInc===val?D:M,cursor:"pointer"}}>{label}</button>)}
+            {[["Yes","yes"],["No","no"]].map(([label,val])=><button key={val} onClick={()=>up({citFiled:val})} style={{flex:1,padding:"12px 16px",borderRadius:10,border:ctx.citFiled===val?`2px solid ${D}`:`2px solid ${B}`,background:ctx.citFiled===val?BG:"#fff",fontFamily:F,fontSize:13,fontWeight:ctx.citFiled===val?600:400,color:ctx.citFiled===val?D:M,cursor:"pointer"}}>{label}</button>)}
           </div>
+          {ctx.citFiled==="yes"&&<div style={{marginTop:10}}><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>{c.E("form.field_cit_case_label")}</label><input value={ctx.citCase||""} onChange={e=>up({citCase:e.target.value})} placeholder={c("form.field_cit_case_placeholder")} style={inputStyle}/></div>}
         </div>
-        <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>Anything else?</label><textarea value={ctx.notes||""} onChange={e=>up({notes:e.target.value})} rows={3} placeholder="Pending protests, broker info, bond details, urgency..." style={{...inputStyle,resize:"vertical"}}/></div>
+        <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:4}}>{c.E("form.field_notes_label")}</label><textarea value={ctx.notes||""} onChange={e=>up({notes:e.target.value})} rows={3} placeholder={c("form.field_notes_placeholder")} style={{...inputStyle,resize:"vertical"}}/></div>
       </div>
     );
 
     /* ── Step 2: Review & submit ── */
     if (step===2) {
-      const rec=ctx.es?getRec(ctx.es):getRec("unsure");
-      const rows=[["Programs",(ctx.tp||[]).join(", ")],["Registrant",{entity:"Importing entity",attorney:"Attorney / advisor",individual:"Sole proprietor"}[ctx.rt]||"—"],["Status",{unliquidated:"Unliquidated",in_window:"In window",expired:"Expired",unsure:"TBD"}[ctx.es]||"—"],["IOR",ctx.ior||"—"],["Contact",ctx.fn||"—"],["Email",ctx.em||"—"],ctx.est?["Est. duties","$"+ctx.est]:null,ctx.bondInc?["Bonds affected",ctx.bondInc==="yes"?"Yes":"No / Not sure"]:null].filter(Boolean);
+      const rows=[["Programs",(ctx.tp||[]).join(", ")],["Registrant",{entity:"Importing entity",attorney:"Attorney / advisor",individual:"Sole proprietor"}[ctx.rt]||"—"],["Status",{unliquidated:"Unliquidated",in_window:"In window",expired:"Expired",unsure:"TBD"}[ctx.es]||"—"],["IOR",ctx.ior||"—"],["Contact",ctx.fn||"—"],["Email",ctx.em||"—"],ctx.est?["Est. duties","$"+ctx.est]:null,ctx.citFiled?["CIT complaint",ctx.citFiled==="yes"?(ctx.citCase?"Yes — "+ctx.citCase:"Yes"):"No"]:null].filter(Boolean);
       return (
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          <div style={{padding:16,background:rec.bg,borderRadius:8,border:`1px solid ${rec.border}`}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><IcCompass size={16} color={rec.color}/><span style={{fontFamily:F,fontSize:14,fontWeight:700,color:rec.color}}>Preliminary recommendation: {rec.path}</span></div>
-            <div style={{fontFamily:F,fontSize:13,color:rec.color,opacity:0.85,lineHeight:"1.6",marginBottom:10}}>{rec.desc}</div>
-            <div style={{fontFamily:F,fontSize:11,color:rec.color,opacity:0.6,lineHeight:"1.5",fontStyle:"italic"}}>This is a preliminary assessment based on the information you've provided. After you submit, our team will review your details and may adjust this recommendation based on the specifics of your situation.</div>
-          </div>
           <div>
             {rows.map((r,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:i<rows.length-1?"1px solid "+B:"none"}}><span style={{fontFamily:F,fontSize:13,color:M}}>{r[0]}</span><span style={{fontFamily:F,fontSize:13,fontWeight:600,color:D,textAlign:"right",marginLeft:16}}>{r[1]}</span></div>)}
           </div>
-          {submitError&&<div style={{padding:12,background:"#fef2f2",borderRadius:10,border:"1px solid #fecaca",fontFamily:F,fontSize:13,color:"#b91c1c"}}>Something went wrong. Your data is saved locally — please try again or email us directly.</div>}
+          {submitError&&<div style={{padding:12,background:"#fef2f2",borderRadius:10,border:"1px solid #fecaca",fontFamily:F,fontSize:13,color:"#b91c1c"}}>{c.E("form.error_submission")}</div>}
           <div style={{display:"flex",gap:12}}>
-            <button onClick={back} style={{padding:"14px 20px",border:"2px solid "+B,borderRadius:10,background:"#fff",fontFamily:F,fontSize:15,fontWeight:500,color:D,cursor:"pointer"}}>← Back</button>
-            <button onClick={()=>{setSubmitting(true);setSubmitError(false);try{next();}catch(e){setSubmitError(true);}setSubmitting(false);}} disabled={submitting} style={{flex:1,padding:"14px 24px",border:"none",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:submitting?"#999":D,color:"#fff",cursor:submitting?"wait":"pointer",fontFamily:F,fontSize:15,fontWeight:600,opacity:submitting?0.7:1,transition:"all 0.2s"}}>{submitting?"Submitting…":"Submit for review →"}</button>
+            <button onClick={back} style={{padding:"14px 20px",border:"2px solid "+B,borderRadius:10,background:"#fff",fontFamily:F,fontSize:15,fontWeight:500,color:D,cursor:"pointer"}}>{c.E("form.button_back")}</button>
+            <button onClick={async()=>{setSubmitting(true);setSubmitError(false);try{const res=await submitToSheet({...ctx,_step:"final"},"update");if(res.bot){setSubmitError(true);setSubmitting(false);return;}try{localStorage.setItem(REWIND_PHASE_KEY,"submitted");}catch(e){}next();}catch(e){setSubmitError(true);}setSubmitting(false);}} disabled={submitting} style={{flex:1,padding:"14px 24px",border:"none",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:submitting?"#999":D,color:"#fff",cursor:submitting?"wait":"pointer",fontFamily:F,fontSize:15,fontWeight:600,opacity:submitting?0.7:1,transition:"all 0.2s"}}>{submitting?c("form.button_submit_loading"):c("form.button_submit")}</button>
           </div>
         </div>
       );
@@ -564,23 +609,23 @@ function LandingPage({ onNavigate }) {
 
     // Done
     return (
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:16}}>
-        <div style={{width:72,height:72,borderRadius:10,background:"linear-gradient(135deg,#e8eeff,#d0dbf0)",display:"flex",alignItems:"center",justifyContent:"center"}}><IcCompass size={36} color="#3a5a8a"/></div>
-        <div><div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D,marginBottom:6}}>We're on it{ctx.fn?`, ${ctx.fn}`:""}.</div><div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.6",maxWidth:420}}>We'll review your information and reach out at <strong style={{color:D}}>{ctx.em||"your email"}</strong> with guidance on your refund options and referrals to qualified trade counsel or cash buyer where appropriate.</div></div>
-        <div style={{width:"100%",padding:16,background:"linear-gradient(135deg,#f0f4ff,#e8eeff)",borderRadius:8,border:"1px solid #c4d5f0",textAlign:"left"}}>
-          <div style={{fontFamily:F,fontWeight:600,fontSize:14,color:"#3b6fc0",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><IcChart size={16} color="#3b6fc0"/>What happens next</div>
-          {[["Review","We assess your eligibility and deadlines"],["Strategy call","We walk through your refund options"],["Referral","We connect you with qualified trade counsel or cash buyer"]].map((s,i)=><div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?8:0}}><div style={{width:22,height:22,borderRadius:8,background:"#3b6fc0",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F,fontSize:10,fontWeight:700,flexShrink:0}}>{i+1}</div><div><div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D}}>{s[0]}</div><div style={{fontFamily:F,fontSize:12,color:M}}>{s[1]}</div></div></div>)}
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",gap:20}}>
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke={D} strokeWidth="2"/><path d="M15 24l6 6 12-12" stroke={D} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div><div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D,marginBottom:6}}>{c.E("form.confirmation_title")}{ctx.fn?`, ${ctx.fn}`:""}.</div><div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.6",maxWidth:420}}>{c.E("form.confirmation_description")}</div></div>
+        <div style={{width:"100%",borderTop:"1px solid "+B,paddingTop:20,textAlign:"left"}}>
+          <div style={{fontFamily:F,fontWeight:600,fontSize:14,color:D,marginBottom:12}}>{c.E("form.confirmation_next_steps_title")}</div>
+          {[[c("form.confirmation_step_1_title"),c("form.confirmation_step_1_desc")],[c("form.confirmation_step_2_title"),c("form.confirmation_step_2_desc")],[c("form.confirmation_step_3_title"),c("form.confirmation_step_3_desc")]].map((s,i)=><div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}><div style={{width:22,height:22,borderRadius:0,clipPath:"polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)",background:D,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F,fontSize:10,fontWeight:700,flexShrink:0}}>{i+1}</div><div><div style={{fontFamily:F,fontSize:13,fontWeight:600,color:D}}>{s[0]}</div><div style={{fontFamily:F,fontSize:12,color:M}}>{s[1]}</div></div></div>)}
         </div>
-        <div style={{width:"100%",padding:20,background:"linear-gradient(135deg,#f5f0ff,#ece4ff)",borderRadius:8,border:"1px solid #d4c8f0",textAlign:"left"}}><div style={{display:"flex",alignItems:"flex-start",gap:14}}>
-          <div style={{width:44,height:44,borderRadius:12,background:"#fff",border:"1px solid #d4c8f0",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><IcLink size={24} color="#7c5cbf"/></div>
-          <div style={{flex:1}}>
-            <div style={{fontFamily:F,fontWeight:600,fontSize:14,color:D,marginBottom:10}}>Refer other importers</div>
-            <div style={{display:"flex",alignItems:"center",border:"1.5px solid #d4c8f0",borderRadius:10,overflow:"hidden",background:"#fff"}}>
-              <div style={{flex:1,padding:"11px 14px",fontFamily:"'SF Mono','Fira Code',monospace",fontSize:13,fontWeight:500,color:D,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>rewindtariffs.com?ref=TRF8K4MN</div>
-              <button onClick={()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{padding:"10px 16px",border:"none",borderLeft:"1.5px solid #d4c8f0",background:copied?"#3b6fc0":"#7c5cbf",color:"#fff",cursor:"pointer",fontFamily:F,fontSize:13,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:6,transition:"background 0.2s"}}>{copied?<><IcCheck size={15} color="#fff" strokeWidth={3}/> Copied</>:<><IcCopy size={15} color="#fff" strokeWidth={2}/> Copy link</>}</button>
-            </div>
+        <div style={{width:"100%",borderTop:"1px solid "+B,paddingTop:20,textAlign:"left"}}>
+          <div style={{fontFamily:F,fontWeight:600,fontSize:14,color:D,marginBottom:14}}>{c.E("form.referral_title")}</div>
+          <div style={{display:"flex",alignItems:"center",borderRadius:0,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",overflow:"hidden",background:ACCSOFT,marginBottom:16}}>
+            <div style={{flex:1,padding:"11px 14px",fontFamily:"'SF Mono','Fira Code',monospace",fontSize:13,fontWeight:600,color:D,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>rewindtariffs.com?ref={ctx.refCode||"TRF8K4MN"}</div>
+            <button onClick={()=>{navigator.clipboard.writeText(`rewindtariffs.com?ref=${ctx.refCode||"TRF8K4MN"}`);setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{padding:"10px 16px",border:"none",background:ACC,color:"#fff",cursor:"pointer",fontFamily:F,fontSize:13,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:6}}>{copied?<><IcCheck size={15} color="#fff" strokeWidth={3}/> Copied</>:<><IcCopy size={15} color="#fff" strokeWidth={2}/> Copy link</>}</button>
           </div>
-        </div></div>
+          <div style={{fontFamily:F,fontWeight:600,fontSize:13,color:D,marginBottom:8}}>Or invite by email</div>
+          <textarea value={referralEmails} onChange={e=>setReferralEmails(e.target.value)} rows={2} placeholder={c("form.referral_emails_placeholder")} style={{width:"100%",padding:"12px 14px",border:"2px solid "+B,borderRadius:10,fontFamily:F,fontSize:14,color:D,background:"#fff",resize:"vertical",boxSizing:"border-box",outline:"none"}}/>
+          <button className="btn-acc" onClick={async()=>{if(!referralEmails.trim())return;setReferralSending(true);try{const emails=referralEmails.split(",").map(e=>e.trim()).filter(e=>e.includes("@"));await fetch(SHEET_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"referral_invite",referrerName:ctx.fn||"",referrerEmail:ctx.em||"",refCode:ctx.refCode||"",emails:emails}),headers:{"Content-Type":"text/plain"}});setReferralSent(true);setReferralEmails("");setTimeout(()=>setReferralSent(false),4000);}catch(e){console.error(e);}setReferralSending(false);}} disabled={referralSending||!referralEmails.trim()} style={{width:"100%",marginTop:10,padding:"14px 24px",border:"none",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:(!referralEmails.trim()||referralSending)?"#d0cec9":ACC,color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:(!referralEmails.trim()||referralSending)?"default":"pointer",transition:"all 0.2s"}}>{referralSent?c("form.referral_button_sent"):referralSending?c("form.referral_button_sending"):c("form.referral_button")}</button>
+        </div>
       </div>
     );
   };
@@ -611,20 +656,20 @@ function LandingPage({ onNavigate }) {
               <Ic size={24} color="#fff" strokeWidth={2}>{mobileMenu?<path d="M6 6l12 12M6 18L18 6"/>:<path d="M4 6h16M4 12h16M4 18h16"/>}</Ic>
             </button>
             <div className="nav-links-desktop" style={{display:"flex",alignItems:"center",gap:28}}>
-              {[["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["About Us","about"]].map(([label,key])=>(
+              {[[n("link_calculator"),"calculator"],[n("link_cases"),"cases"],[n("link_research"),"research"],[n("link_brokers"),"brokers"],[n("link_about"),"about"]].map(([label,key])=>(
                 <a key={key} href={"#"+key} style={{fontFamily:F,fontSize:14,color:DARKMUTED,textDecoration:"none",fontWeight:500}} onClick={e=>{e.preventDefault();onNavigate(key);}}>{label}</a>
               ))}
-              <button onClick={scrollToForm} style={{padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Get a free assessment</button>
+              <button className="btn-acc" onClick={scrollToForm} style={{padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>{n.E("button_get_started")}</button>
             </div>
           </div>
         </nav>
       </div>
       {mobileMenu&&<div style={{position:"fixed",left:0,right:0,top:56,zIndex:99999,background:DARK,display:"flex",flexDirection:"column",gap:0,borderTop:"1px solid "+DARKBORDER,boxShadow:"0 16px 48px rgba(0,0,0,0.6)"}}>
-        {[["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["About Us","about"]].map(([label,key])=>(
+        {[[n("link_calculator"),"calculator"],[n("link_cases"),"cases"],[n("link_research"),"research"],[n("link_brokers"),"brokers"],[n("link_about"),"about"]].map(([label,key])=>(
           <a key={key} href={"#"+key} style={{fontFamily:F,fontSize:16,color:"#fff",textDecoration:"none",fontWeight:500,padding:"14px 24px",borderBottom:"1px solid "+DARKBORDER}} onClick={e=>{e.preventDefault();setMobileMenu(false);onNavigate(key);}}>{label}</a>
         ))}
         <div style={{padding:"16px 24px"}}>
-          <button onClick={()=>{setMobileMenu(false);scrollToForm();}} style={{width:"100%",padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:"pointer",textAlign:"center"}}>Get a free assessment</button>
+          <button className="btn-acc" onClick={()=>{setMobileMenu(false);scrollToForm();}} style={{width:"100%",padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:"pointer",textAlign:"center"}}>{n.E("button_get_started")}</button>
         </div>
       </div>}
 
@@ -633,7 +678,7 @@ function LandingPage({ onNavigate }) {
         {/* Grid dots */}
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.5}}/>
         {/* Glows */}
-        <div style={{position:"absolute",top:"-20%",right:"-10%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,90,0.18) 0%,transparent 70%)",filter:"blur(80px)"}}/>
+        <div style={{position:"absolute",top:"-20%",right:"-10%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(242,86,80,0.18) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"absolute",bottom:"-30%",left:"-5%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(96,165,250,0.1) 0%,transparent 70%)",filter:"blur(60px)"}}/>
 
         {/* Waving flag — perspective, fading left, no blue */}
@@ -679,7 +724,7 @@ function LandingPage({ onNavigate }) {
         <div className="hero-two-col" style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",padding:"72px 32px 80px",display:"flex",alignItems:"center",gap:60}}>
           {/* Left: text */}
           <div style={{flex:1,minWidth:0}}>
-            <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:"rgba(255,107,90,0.1)",border:"1px solid rgba(255,107,90,0.2)",marginBottom:28}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:0,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",background:"rgba(242,86,80,0.12)",marginBottom:28}}>
               <div style={{width:8,height:8,borderRadius:4,background:ACC,boxShadow:`0 0 8px ${ACC}`}}/>
               <span style={{fontFamily:F,fontSize:13,fontWeight:600,color:ACC}}>Now accepting submissions</span>
             </div>
@@ -689,7 +734,7 @@ function LandingPage({ onNavigate }) {
             <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,lineHeight:1.6,maxWidth:500,marginBottom:36}}>
               On Feb. 20, 2026, the Supreme Court struck down all IEEPA tariffs 6–3. We help you understand your options and connect you with qualified counsel or a cash buyer.
             </p>
-            <button onClick={scrollToForm} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"20px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,boxShadow:"0 4px 24px rgba(255,107,90,0.25)"}}>
+            <button className="btn-acc" onClick={scrollToForm} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"20px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>
               Check your eligibility <IcArrowDown size={18} color="#fff" strokeWidth={2.2}/>
             </button>
 
@@ -697,7 +742,7 @@ function LandingPage({ onNavigate }) {
             <div className="trust-badges" style={{display:"flex",gap:36,marginTop:48,flexWrap:"wrap"}}>
               {[[IcShield,"Free assessment","No obligation, no hidden fees"],[IcClock,"Don't wait","180-day protest windows expiring"]].map(([Icon,t,d],i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:12}}>
-                  <div style={{width:40,height:40,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:DARKCARD,border:`1px solid ${DARKBORDER}`,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon size={20} color={ACC}/></div>
+                  <div style={{width:40,height:40,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",background:DARKCARD,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon size={20} color={ACC}/></div>
                   <div><div style={{fontFamily:F,fontSize:14,fontWeight:600,color:"#fff"}}>{t}</div><div style={{fontFamily:F,fontSize:12,color:DARKMUTED}}>{d}</div></div>
                 </div>
               ))}
@@ -747,7 +792,7 @@ function LandingPage({ onNavigate }) {
       {/* ═══ HOW IT WORKS (PROCESS) ═══ */}
       <div ref={howRef} className="section-pad" style={{background:"#f0efeb",padding:"80px 32px"}}>
         <style>{`
-          .how-card{background:#fff;border-radius:0;clip-path:polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);padding:28px 24px;border:2px solid ${B};box-shadow:0 1px 3px rgba(0,0,0,0.03);position:relative;overflow:visible;transition:all 0.3s cubic-bezier(.4,0,.2,1);cursor:default}
+          .how-card{background:#fff;border-radius:0;clip-path:polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);padding:28px 24px;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.03);position:relative;overflow:visible;transition:all 0.3s cubic-bezier(.4,0,.2,1);cursor:default}
           .how-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,0.1)}
           .how-card .how-num{position:absolute;top:16px;right:20px;font-family:${F};font-size:64px;font-weight:800;color:rgba(0,0,0,0.04);line-height:1;transition:color 0.3s ease}
           .how-card:hover .how-num{color:${ACC}20}
@@ -758,9 +803,9 @@ function LandingPage({ onNavigate }) {
         `}</style>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:48}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c("how_it_works.label")}</div>
-            <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:D,marginBottom:12}}>{c("how_it_works.headline")}</div>
-            <div style={{fontFamily:F,fontSize:16,color:M,maxWidth:560,margin:"0 auto",lineHeight:"1.6"}}>{c("how_it_works.description")}</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("how_it_works.label")}</div>
+            <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:D,marginBottom:12}}>{c.E("how_it_works.headline")}</div>
+            <div style={{fontFamily:F,fontSize:16,color:M,maxWidth:560,margin:"0 auto",lineHeight:"1.6"}}>{c.E("how_it_works.description")}</div>
             <a href="#data-guide" onClick={e=>{e.preventDefault();onNavigate("data-guide");}} style={{display:"inline-block",fontFamily:F,fontSize:14,fontWeight:600,color:ACC,textDecoration:"none",marginTop:12,transition:"opacity 0.2s"}}>How to get your data →</a>
           </div>
           <div ref={howGridRef} className="grid-5col-how" style={{display:"grid",gridTemplateColumns:"1fr auto 1fr auto 1fr",gap:0,alignItems:"stretch"}}>
@@ -790,21 +835,21 @@ function LandingPage({ onNavigate }) {
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:48}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c("by_the_numbers.label")}</div>
-            <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",marginBottom:12}}>{c("by_the_numbers.headline")}</div>
-            <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:600,margin:"0 auto",lineHeight:"1.6"}}>{c("by_the_numbers.description")}</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("by_the_numbers.label")}</div>
+            <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",marginBottom:12}}>{c.E("by_the_numbers.headline")}</div>
+            <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,maxWidth:600,margin:"0 auto",lineHeight:"1.6"}}>{c.E("by_the_numbers.description")}</div>
           </div>
 
           <div className="grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center"}}>
             {/* Left — bar chart */}
-            <div style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"1px solid "+DARKBORDER,padding:"32px 28px"}}>
-              <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:"#fff",marginBottom:6}}>IEEPA Revenue by Tariff Program</div>
-              <div style={{fontFamily:F,fontSize:12,color:DARKMUTED,marginBottom:24}}>Estimated through Feb. 20, 2026</div>
+            <div style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"32px 28px"}}>
+              <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:"#fff",marginBottom:6}}>{c.E("bar_chart.title")}</div>
+              <div style={{fontFamily:F,fontSize:12,color:DARKMUTED,marginBottom:24}}>{c.E("bar_chart.subtitle")}</div>
               {[
-                {label:"Reciprocal / Liberation Day",pct:61,amt:"~$107B",color:ACC},
-                {label:"Fentanyl — China (EO 14195)",pct:28.4,amt:"~$50B",color:"#f59e0b"},
-                {label:"Fentanyl — Canada & Mexico",pct:6.7,amt:"~$12B",color:"#60a5fa"},
-                {label:"De Minimis & Other",pct:3.9,amt:"~$7B",color:"#a78bfa"},
+                {label:c("bar_chart.bar_1_label"),pct:61,amt:c("bar_chart.bar_1_amt"),color:ACC},
+                {label:c("bar_chart.bar_2_label"),pct:28.4,amt:c("bar_chart.bar_2_amt"),color:"#f59e0b"},
+                {label:c("bar_chart.bar_3_label"),pct:6.7,amt:c("bar_chart.bar_3_amt"),color:"#60a5fa"},
+                {label:c("bar_chart.bar_4_label"),pct:3.9,amt:c("bar_chart.bar_4_amt"),color:"#a78bfa"},
               ].map((b,i)=>(
                 <div key={i} style={{marginBottom:i<3?18:0}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}>
@@ -822,14 +867,14 @@ function LandingPage({ onNavigate }) {
             {/* Right — key stats */}
             <div className="grid-2col-stats" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
               {[
-                {num:"$166B",label:"Total IEEPA duties collected",sub:"Per CBP court filings, Feb 2025 – Feb 2026"},
-                {num:"52%",label:"Share of all customs revenue",sub:"Largest single tariff authority"},
-                {num:"$500M",label:"Collected per day",sub:"Average daily IEEPA revenue"},
-                {num:"$1,300",label:"Per U.S. household",sub:"Average burden of IEEPA tariffs"},
-                {num:"6–3",label:"Supreme Court ruling",sub:"Roberts majority, Feb. 20, 2026"},
-                {num:"180 days",label:"Protest window",sub:"From liquidation date"},
+                {num:c("stats.stat_1_num"),label:c("stats.stat_1_label"),sub:c("stats.stat_1_sub")},
+                {num:c("stats.stat_2_num"),label:c("stats.stat_2_label"),sub:c("stats.stat_2_sub")},
+                {num:c("stats.stat_3_num"),label:c("stats.stat_3_label"),sub:c("stats.stat_3_sub")},
+                {num:c("stats.stat_4_num"),label:c("stats.stat_4_label"),sub:c("stats.stat_4_sub")},
+                {num:c("stats.stat_5_num"),label:c("stats.stat_5_label"),sub:c("stats.stat_5_sub")},
+                {num:c("stats.stat_6_num"),label:c("stats.stat_6_label"),sub:c("stats.stat_6_sub")},
               ].map((s,i)=>(
-                <div key={i} style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"1px solid "+DARKBORDER,padding:"20px 18px"}}>
+                <div key={i} style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"20px 18px"}}>
                   <div style={{fontFamily:F,fontSize:28,fontWeight:800,color:i===0?ACC:"#fff",letterSpacing:"-0.02em",marginBottom:4}}>{s.num}</div>
                   <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:"#ccc",marginBottom:2}}>{s.label}</div>
                   <div style={{fontFamily:F,fontSize:11,color:DARKMUTED}}>{s.sub}</div>
@@ -854,26 +899,22 @@ function LandingPage({ onNavigate }) {
           <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D}}>We're here to help you make sense of the mess</div>
         </div>
         <div className="about-3col" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:40}}>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Ready to help</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Connected to top trade experts</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>We work with a network of customs brokers, trade attorneys, and refund specialists who handle IEEPA claims every day.</div>
-          </div>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Ready to fund</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Backed by smart capital</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>Our capital partners understand your business needs and are prepared to move fast to purchase your refund receivables. If you prefer to cash out rather than wait, we offer highly competitive rates.</div>
-          </div>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Proven impact</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Hundreds of millions recovered</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>Our team has recovered hundreds of millions of dollars for claimants in other complex proceedings including bankruptcies and class action cases.</div>
-          </div>
+          {[
+            {label:"Ready to help",title:"Connected to top trade experts",desc:"We work with a network of customs brokers, trade attorneys, and refund specialists who handle IEEPA claims every day."},
+            {label:"Ready to fund",title:"Backed by smart capital",desc:"Our capital partners understand your business needs and are prepared to move fast to purchase your refund receivables. If you prefer to cash out rather than wait, we offer highly competitive rates."},
+            {label:"Proven impact",title:"Hundreds of millions recovered",desc:"Our team has recovered hundreds of millions of dollars for claimants in other complex proceedings including bankruptcies and class action cases."},
+          ].map((c,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateRows:"auto 1fr auto"}}>
+              <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.label}</div>
+              <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16,alignSelf:"start"}}>{c.title}</div>
+              <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>{c.desc}</div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* ═══ FORM SECTION ═══ */}
-      <div className="section-pad" style={{background:"#f5f4f0",padding:"80px 32px 100px"}} ref={formRef}>
+      <div id="assessment" className="section-pad" style={{background:"#f5f4f0",padding:"80px 32px 100px"}} ref={formRef}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
 
           {phase==="emailVerify" ? (
@@ -907,8 +948,8 @@ function LandingPage({ onNavigate }) {
             <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr",gap:60,alignItems:"start"}}>
               {/* Left column — copy + trust points */}
               <div>
-                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c("form_intro.label")}</div>
-                <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D,lineHeight:1.15,marginBottom:32}}>{c("form_intro.headline")}</div>
+                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("form_intro.label")}</div>
+                <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D,lineHeight:1.15,marginBottom:32}}>{c.E("form_intro.headline")}</div>
                 {[
                   [c("form_intro.trust_1_title"),c("form_intro.trust_1_desc")],
                   [c("form_intro.trust_2_title"),c("form_intro.trust_2_desc")],
@@ -923,6 +964,8 @@ function LandingPage({ onNavigate }) {
 
               {/* Right column — form card */}
               <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"32px 32px 28px"}}>
+                {/* Honeypot — hidden from real users */}
+                <div style={{position:"absolute",left:"-9999px",opacity:0,height:0,overflow:"hidden"}} aria-hidden="true"><input tabIndex={-1} autoComplete="off" value={ctx._hp||""} onChange={e=>up({_hp:e.target.value})} name="website"/></div>
                 <div className="form-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
                   <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:6}}>Company name <span style={{color:ACC}}>*</span></label><input value={ctx.company||""} onChange={e=>up({company:e.target.value})} placeholder="" style={inputStyle}/></div>
                   <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:6}}>Contact name <span style={{color:ACC}}>*</span></label><input value={ctx.fn||""} onChange={e=>up({fn:e.target.value})} placeholder="" style={inputStyle}/></div>
@@ -952,12 +995,22 @@ function LandingPage({ onNavigate }) {
             </div>
           ) : (
             /* ─── PHASE 2: Detailed onboarding flow ─── */
-            <div style={{maxWidth:640,margin:"0 auto"}}>
-              {/* Section header */}
-              <div style={{textAlign:"center",marginBottom:36}}>
-                <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:8}}>Tell us about your imports</div>
-                <div style={{fontFamily:F,fontSize:15,color:M,maxWidth:460,margin:"0 auto",lineHeight:"1.6"}}>A few more details so we can assess your eligibility and point you in the right direction, {ctx.fn?ctx.fn.split(" ")[0]:""}.</div>
+            <div className="phase2-layout" style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:40,alignItems:"flex-start"}}>
+              {/* Left column — identity + welcome */}
+              <div className="phase2-sidebar" style={{flex:"0 0 340px",position:"sticky",top:32}}>
+                {ctx.fn&&<div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 16px",background:"#e8eeff",border:"1px solid #c4d5f0",borderRadius:8,marginBottom:20}}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3b6fc0" strokeWidth="2"/><path d="M5 8l2 2 4-4" stroke="#3b6fc0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <span style={{fontFamily:F,fontSize:13,color:"#3b6fc0",fontWeight:500}}>Verified</span>
+                </div>}
+                <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,32px)",fontWeight:700,color:D,marginBottom:10,lineHeight:1.15}}>Welcome back{ctx.fn?`, ${ctx.fn.split(" ")[0]}`:""}</div>
+                <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.6",marginBottom:20}}>A few more details so we can assess your eligibility and point you in the right direction.</div>
+                {ctx.fn&&<div style={{fontFamily:F,fontSize:13,color:M,lineHeight:"1.6"}}>
+                  <span style={{fontWeight:600,color:D}}>{ctx.fn}</span><br/>{ctx.em}
+                </div>}
               </div>
+
+              {/* Right column — form card */}
+              <div style={{flex:1,minWidth:0}}>
 
               {/* Form card — onboarding steps */}
               <div style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",overflow:"hidden"}}>
@@ -973,7 +1026,7 @@ function LandingPage({ onNavigate }) {
                   {inForm&&<div style={{display:"flex",gap:6}}>{Array.from({length:totalSteps}).map((_,i)=><div key={i} style={{flex:1,height:4,borderRadius:2,background:isFinal||i<step?D:i===step?`linear-gradient(90deg,${D} 50%,${B} 50%)`:B}}/>)}</div>}
                 </div>
                 <div style={{padding:"28px 32px 32px"}}>
-                  {!isFinal&&TITLES[step]&&<div style={{marginBottom:20}}><div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D,marginBottom:4}}>{TITLES[step].t}</div><div style={{fontFamily:F,fontSize:14,color:M}}>{TITLES[step].s}</div></div>}
+                  {!isFinal&&TITLES[step]&&<div style={{marginBottom:20}}><div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D,marginBottom:4}}>{TITLES[step].t}</div>{TITLES[step].s&&<div style={{fontFamily:F,fontSize:14,color:M}}>{TITLES[step].s}</div>}</div>}
                   {inForm&&renderStep()}
                   {inForm&&!isFinal&&step<2&&(
                     <div style={{marginTop:24,paddingTop:20,borderTop:"1px solid "+B}}>
@@ -986,6 +1039,7 @@ function LandingPage({ onNavigate }) {
                   )}
                 </div>
               </div>
+              </div>{/* end right column */}
             </div>
           )}
         </div>
@@ -1248,6 +1302,7 @@ function analyzeEntries(rows) {
 }
 
 function CalculatorPage({ onNavigate }) {
+  const c = useEditableContent("calculator");
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [results, setResults] = useState(null);
@@ -1313,11 +1368,11 @@ function CalculatorPage({ onNavigate }) {
       {/* Hero */}
       <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
-        <div style={{position:"absolute",top:"-20%",right:"-5%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,90,0.10) 0%,transparent 70%)",filter:"blur(80px)"}}/>
+        <div style={{position:"absolute",top:"-20%",right:"-5%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(242,86,80,0.10) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Refund Calculator</div>
-          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>Calculate Your IEEPA Refund</h1>
-          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>Upload your Customs Entry Summary (ES-003) report from ACE to instantly calculate your potential IEEPA tariff refund amount.</p>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("page_label")}</div>
+          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>{c.E("page_title")}</h1>
+          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>{c.E("page_description")}</p>
         </div>
       </div>
 
@@ -1330,8 +1385,8 @@ function CalculatorPage({ onNavigate }) {
 
             {!results ? (
               <>
-                <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>Upload Your Entry Data</div>
-                <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24,lineHeight:1.6}}>Export your <strong>Customs Entry Summary (ES-003)</strong> report from CBP's ACE portal, save as CSV, and upload it below. We'll identify all IEEPA tariff lines and calculate your potential refund.</div>
+                <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>{c.E("upload_title")}</div>
+                <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24,lineHeight:1.6}}>{c.E("upload_description")}</div>
 
                 {/* Drop zone */}
                 <div
@@ -1355,10 +1410,10 @@ function CalculatorPage({ onNavigate }) {
                     <Ic size={40} color={dragOver ? ACC : M} strokeWidth={1.4}><path d="M12 16V4M8 8l4-4 4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></Ic>
                   </div>
                   <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:D,marginBottom:4}}>
-                    {file ? file.name : "Drag & drop your CSV file here"}
+                    {file ? file.name : c("dropzone_text")}
                   </div>
                   <div style={{fontFamily:F,fontSize:13,color:M}}>
-                    {file ? "Processing..." : "or click to browse"}
+                    {file ? "Processing..." : c("dropzone_subtext")}
                   </div>
                 </div>
 
@@ -1369,10 +1424,10 @@ function CalculatorPage({ onNavigate }) {
                 {/* Template download */}
                 <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
                   <button onClick={downloadTemplate} style={{fontFamily:F,fontSize:13,color:ACC,background:"none",border:"none",cursor:"pointer",fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>
-                    Download CSV template
+                    {c.E("download_template")}
                   </button>
-                  <span style={{fontFamily:F,fontSize:12,color:M}}>— Need help pulling your data?</span>
-                  <a href="#data-guide" onClick={(e) => { e.preventDefault(); onNavigate("data-guide"); }} style={{fontFamily:F,fontSize:13,color:ACC,fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>View guide</a>
+                  <span style={{fontFamily:F,fontSize:12,color:M}}>— {c.E("help_text")}</span>
+                  <a href="#data-guide" onClick={(e) => { e.preventDefault(); onNavigate("data-guide"); }} style={{fontFamily:F,fontSize:13,color:ACC,fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>{c.E("help_link")}</a>
                 </div>
               </>
             ) : (
@@ -1380,44 +1435,44 @@ function CalculatorPage({ onNavigate }) {
                 {/* Results */}
                 <div className="hero-results-header" style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
                   <div>
-                    <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:4}}>Your Refund Estimate</div>
+                    <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:4}}>{c.E("results_title")}</div>
                     <div style={{fontFamily:F,fontSize:13,color:M}}>{results.rowCount} line items across {results.entries.length} entries from <strong>{file?.name}</strong></div>
                   </div>
-                  <button onClick={reset} style={{fontFamily:F,fontSize:13,color:ACC,background:ACCSOFT,border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontWeight:600}}>Upload new file</button>
+                  <button onClick={reset} style={{fontFamily:F,fontSize:13,color:ACC,background:ACCSOFT,border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontWeight:600}}>{c.E("upload_new")}</button>
                 </div>
 
                 {/* Summary cards */}
                 <div className="calc-results-3col" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:28}}>
                   <div style={{background:"linear-gradient(135deg,#f0fdf4,#e8fae8)",borderRadius:8,padding:"20px 18px",border:"1px solid #bbf0c8"}}>
-                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#166534",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>IEEPA Duties Paid</div>
+                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#166534",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>{c.E("card_duties_label")}</div>
                     <div style={{fontFamily:F,fontSize:28,fontWeight:700,color:"#15803d"}}>{fmtCur(results.totalIEEPA)}</div>
                     <div style={{fontFamily:F,fontSize:12,color:"#166534",marginTop:4}}>{results.entriesWithIEEPA.length} entries with IEEPA lines</div>
                   </div>
                   <div style={{background:"linear-gradient(135deg,#eff6ff,#e0edff)",borderRadius:8,padding:"20px 18px",border:"1px solid #bfdbfe"}}>
-                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#1e40af",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>Estimated Interest</div>
+                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#1e40af",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>{c.E("card_interest_label")}</div>
                     <div style={{fontFamily:F,fontSize:28,fontWeight:700,color:"#1d4ed8"}}>{fmtCur(results.estInterest)}</div>
-                    <div style={{fontFamily:F,fontSize:12,color:"#1e40af",marginTop:4}}>At 7% annual rate</div>
+                    <div style={{fontFamily:F,fontSize:12,color:"#1e40af",marginTop:4}}>{c.E("card_interest_note")}</div>
                   </div>
                   <div style={{background:"linear-gradient(135deg,#fef9ee,#fdf5e0)",borderRadius:8,padding:"20px 18px",border:"1px solid #e8dbb8"}}>
-                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#92400e",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>Total Recovery</div>
+                    <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:"#92400e",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:6}}>{c.E("card_recovery_label")}</div>
                     <div style={{fontFamily:F,fontSize:28,fontWeight:700,color:"#b45309"}}>{fmtCur(results.totalIEEPA + results.estInterest)}</div>
-                    <div style={{fontFamily:F,fontSize:12,color:"#92400e",marginTop:4}}>Principal + interest</div>
+                    <div style={{fontFamily:F,fontSize:12,color:"#92400e",marginTop:4}}>{c.E("card_recovery_note")}</div>
                   </div>
                 </div>
 
                 {/* Context stats */}
                 <div style={{background:"#faf9f6",borderRadius:10,padding:"16px 20px",marginBottom:28,boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
                   <div className="calc-context-row" style={{display:"flex",justifyContent:"space-between",fontFamily:F,fontSize:13,color:M}}>
-                    <span>Total goods value: <strong style={{color:D}}>{fmtCur(results.totalGoods)}</strong></span>
-                    <span>Total duties (all): <strong style={{color:D}}>{fmtCur(results.totalDuty)}</strong></span>
-                    <span>Effective IEEPA rate: <strong style={{color:D}}>{results.totalGoods > 0 ? (results.totalIEEPA / results.totalGoods * 100).toFixed(1) : "0"}%</strong></span>
+                    <span>{c.E("context_goods_value")} <strong style={{color:D}}>{fmtCur(results.totalGoods)}</strong></span>
+                    <span>{c.E("context_total_duties")} <strong style={{color:D}}>{fmtCur(results.totalDuty)}</strong></span>
+                    <span>{c.E("context_effective_rate")} <strong style={{color:D}}>{results.totalGoods > 0 ? (results.totalIEEPA / results.totalGoods * 100).toFixed(1) : "0"}%</strong></span>
                   </div>
                 </div>
 
                 {/* Entry breakdown */}
                 {results.entriesWithIEEPA.length > 0 && (
                   <div style={{marginBottom:28}}>
-                    <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:D,marginBottom:12}}>Entry Breakdown</div>
+                    <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:D,marginBottom:12}}>{c.E("breakdown_title")}</div>
                     {results.entriesWithIEEPA.map((entry) => (
                       <div key={entry.esn} style={{background:"#faf9f6",borderRadius:10,padding:"14px 18px",marginBottom:8,cursor:"pointer",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}} onClick={() => setExpandedEntry(expandedEntry === entry.esn ? null : entry.esn)}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -1432,7 +1487,7 @@ function CalculatorPage({ onNavigate }) {
                         </div>
                         {expandedEntry === entry.esn && (
                           <div style={{marginTop:12,borderTop:"1px solid "+B,paddingTop:12}}>
-                            <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:M,marginBottom:8}}>IEEPA Tariff Lines</div>
+                            <div style={{fontFamily:F,fontSize:12,fontWeight:600,color:M,marginBottom:8}}>{c.E("lines_title")}</div>
                             {entry.ieepaLines.map((line, i) => (
                               <div key={i} style={{display:"flex",justifyContent:"space-between",fontFamily:F,fontSize:13,color:D,padding:"4px 0"}}>
                                 <span>HTS {line.hts} (Line {line.lineNum}, Ord {line.ordinal})</span>
@@ -1449,16 +1504,16 @@ function CalculatorPage({ onNavigate }) {
                 {/* Disclaimer */}
                 <div style={{background:"#faf9f6",borderRadius:10,padding:"16px 20px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
                   <div style={{fontFamily:F,fontSize:12,color:M,lineHeight:1.7}}>
-                    <strong style={{color:D}}>Disclaimer:</strong> This calculator provides a preliminary estimate only. IEEPA tariff lines are identified by HTS subheading (9903.01xx / 9903.02xx) and supplemental duty indicators. Actual refund amounts depend on entry-level review by a licensed customs broker or qualified trade attorney. Interest is estimated at 7% annual, prorated. Final refund amounts may differ based on liquidation status, protest deadlines, and CBP processing.
+                    <strong style={{color:D}}>{c.E("disclaimer_label")}</strong> {c.E("disclaimer_text")}
                   </div>
                 </div>
 
                 {/* CTA */}
                 <div style={{marginTop:32,background:`linear-gradient(135deg,${D},#2a3a52)`,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"32px 28px",textAlign:"center"}}>
                   <div style={{fontFamily:S,fontSize:22,fontWeight:700,color:"#fff",marginBottom:8}}>Ready to recover {fmtCur(results.totalIEEPA + results.estInterest)}?</div>
-                  <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,marginBottom:20,lineHeight:"1.6"}}>Get a free, no-obligation assessment from our team. We'll review your entries and connect you with qualified counsel.</div>
-                  <button onClick={() => onNavigate("home")} style={{padding:"14px 36px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 20px rgba(255,107,90,0.35)",transition:"transform 0.2s"}}>
-                    Get your full assessment →
+                  <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,marginBottom:20,lineHeight:"1.6"}}>{c.E("cta_description")}</div>
+                  <button className="btn-acc" onClick={() => onNavigate("home")} style={{padding:"14px 36px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 20px rgba(242,86,80,0.35)",transition:"transform 0.2s"}}>
+                    {c.E("cta_button")}
                   </button>
                 </div>
               </>
@@ -1468,15 +1523,15 @@ function CalculatorPage({ onNavigate }) {
           {/* How it works mini-section */}
           {!results && (
             <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px"}}>
-              <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:D,marginBottom:20}}>How We Identify IEEPA Lines</div>
+              <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:D,marginBottom:20}}>{c.E("how_identify_title")}</div>
               <div className="form-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
                 <div style={{background:"#faf9f6",borderRadius:10,padding:"18px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-                  <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,marginBottom:6}}>HTS Subheadings</div>
-                  <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:1.6}}>IEEPA tariffs are assessed under HTS Chapter 99, specifically subheadings <strong>9903.01xx</strong> and <strong>9903.02xx</strong>. These lines appear as additional duty entries on your ES-003.</div>
+                  <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,marginBottom:6}}>{c.E("card_hts_title")}</div>
+                  <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:1.6}}>{c.E("card_hts_desc")}</div>
                 </div>
                 <div style={{background:"#faf9f6",borderRadius:10,padding:"18px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-                  <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,marginBottom:6}}>Tariff Ordinals</div>
-                  <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:1.6}}>Supplemental IEEPA duties appear as additional ordinal lines (ordinal &gt; 1) with $0 goods value but a positive duty amount. These are the surcharges eligible for refund.</div>
+                  <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,marginBottom:6}}>{c.E("card_ordinals_title")}</div>
+                  <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:1.6}}>{c.E("card_ordinals_desc")}</div>
                 </div>
               </div>
             </div>
@@ -1517,12 +1572,23 @@ function CalculatorPage({ onNavigate }) {
         </div>
       </div>
 
+      {/* CTA */}
+      <div style={{background:"#f0efeb",padding:"60px 32px",textAlign:"center"}}>
+        <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:D,marginBottom:12}}>Ready to recover your tariffs?</div>
+        <div style={{fontFamily:F,fontSize:15,color:M,maxWidth:500,margin:"0 auto 24px",lineHeight:"1.7"}}>Get a free, no-obligation assessment of your refund eligibility. We'll help you understand your options.</div>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>onNavigate("contact")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:D,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer"}}>Contact us</button>
+          <button className="btn-acc" onClick={()=>{onNavigate("home");setTimeout(()=>{const el=document.querySelector('[data-form]');el?.scrollIntoView({behavior:"smooth"});},300);}} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>Get started →</button>
+        </div>
+      </div>
+
       <Footer onNavigate={onNavigate}/>
     </div>
   );
 }
 
 function ResearchPage({ onNavigate }) {
+  const c = useEditableContent("research");
   const stories = useNews();
   const archive = useNewsArchive();
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -1538,11 +1604,11 @@ function ResearchPage({ onNavigate }) {
       {/* Hero */}
       <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
-        <div style={{position:"absolute",top:"-20%",right:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,90,0.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
+        <div style={{position:"absolute",top:"-20%",right:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(242,86,80,0.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>News & Research</div>
-          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>IEEPA Tariff News & Data</h1>
-          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>Stay up to date on the latest developments in IEEPA tariff litigation, CBP refund processing, and policy changes — plus comprehensive data and analysis on $166B+ in collections.</p>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("page_label")}</div>
+          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>{c.E("page_title")}</h1>
+          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>{c.E("page_description")}</p>
         </div>
       </div>
 
@@ -1557,47 +1623,21 @@ function ResearchPage({ onNavigate }) {
       <div className="subpage-content" style={{background:"#f5f4f0",padding:"60px 32px 100px"}}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
 
-          {/* ─── Featured Article ─── */}
-          {stories.length > 0 && (
-            <a href={stories[0].url} target="_blank" rel="noopener noreferrer" style={{display:"block",background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:32,textDecoration:"none",transition:"box-shadow 0.2s,border-color 0.2s",border:"1px solid transparent"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                <span style={{fontFamily:F,fontSize:10,fontWeight:700,color:"#fff",background:stories[0].tag==="Breaking"?ACC:stories[0].tag==="Urgent"?"#f59e0b":stories[0].tag==="Legal"?"#60a5fa":stories[0].tag==="Policy"?"#a78bfa":"rgba(0,0,0,0.4)",padding:"3px 9px",borderRadius:4,letterSpacing:"0.04em",textTransform:"uppercase"}}>{stories[0].tag}</span>
-                <span style={{fontFamily:F,fontSize:12,color:M}}>{stories[0].date}</span>
-              </div>
-              <div style={{fontFamily:F,fontSize:22,fontWeight:700,color:D,lineHeight:"1.35",marginBottom:10}}>{stories[0].title}</div>
-              {stories[0].summary && <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.6",marginBottom:12}}>{stories[0].summary}</div>}
-              <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:ACC}}>{stories[0].source} — Read full article →</div>
-            </a>
-          )}
-
-          {/* ─── Timeline ─── */}
+          {/* ─── Featured Article + All Articles ─── */}
           <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:32}}>
-            <div style={{fontFamily:F,fontSize:20,fontWeight:700,color:D,marginBottom:4}}>IEEPA Tariff Timeline</div>
-            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:28}}>Key events from latest developments to first tariffs</div>
-            <div style={{position:"relative",paddingLeft:28}}>
-              <div style={{position:"absolute",left:8,top:6,bottom:6,width:2,background:B}}/>
-              {[...TARIFF_TIMELINE].reverse().map((t,i)=>{
-                const tagColors={IEEPA:{bg:ACCSOFT,color:ACC},Pause:{bg:"#fef3c7",color:"#92400e"},Reduction:{bg:"#dbeafe",color:"#1e40af"},Data:{bg:"#f3f4f6",color:M},SCOTUS:{bg:"rgba(16,185,129,0.12)",color:"#065f46"},Replacement:{bg:"#ede9fe",color:"#5b21b6"}};
-                const tc=tagColors[t.tag]||tagColors.Data;
-                const isScotus=t.tag==="SCOTUS";
-                return(
-                  <div key={i} style={{display:"flex",gap:16,marginBottom:i<TARIFF_TIMELINE.length-1?20:0,position:"relative"}}>
-                    <div style={{position:"absolute",left:-22,top:6,width:14,height:14,borderRadius:7,background:isScotus?ACC:"#fff",border:isScotus?"none":`2px solid ${B}`,boxShadow:isScotus?`0 0 8px ${ACC}`:"none"}}/>
-                    <div style={{flex:1}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                        <span style={{fontFamily:F,fontSize:13,fontWeight:700,color:D}}>{t.date}</span>
-                        <span style={{fontFamily:F,fontSize:10,fontWeight:600,color:tc.color,background:tc.bg,padding:"2px 8px",borderRadius:4}}>{t.tag}</span>
-                      </div>
-                      <div style={{fontFamily:F,fontSize:14,color:isScotus?D:M,fontWeight:isScotus?600:400,lineHeight:"1.5"}}>{t.event}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            {stories.length > 0 && (
+              <a href={stories[0].url} target="_blank" rel="noopener noreferrer" style={{display:"block",textDecoration:"none",paddingBottom:28,marginBottom:28,borderBottom:"1px solid "+B}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <span style={{fontFamily:F,fontSize:10,fontWeight:700,color:"#fff",background:stories[0].tag==="Breaking"?ACC:stories[0].tag==="Urgent"?"#f59e0b":stories[0].tag==="Legal"?"#60a5fa":stories[0].tag==="Policy"?"#a78bfa":"rgba(0,0,0,0.4)",padding:"3px 9px",borderRadius:4,letterSpacing:"0.04em",textTransform:"uppercase"}}>{stories[0].tag}</span>
+                  <span style={{fontFamily:F,fontSize:12,color:M}}>{stories[0].date}</span>
+                </div>
+                <div style={{fontFamily:F,fontSize:22,fontWeight:700,color:D,lineHeight:"1.35",marginBottom:10}}>{stories[0].title}</div>
+                {stories[0].summary && <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.6",marginBottom:12}}>{stories[0].summary}</div>}
+                <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:ACC}}>{stories[0].source} — Read full article →</div>
+              </a>
+            )}
 
-          {/* ─── Article Archive ─── */}
-          <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:32}}>
+            {/* All Articles accordion */}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}} onClick={()=>setArchiveOpen(!archiveOpen)}>
               <div>
                 <div style={{fontFamily:F,fontSize:20,fontWeight:700,color:D,marginBottom:4}}>All Articles{archive.length>0?` (${archive.length})`:""}</div>
@@ -1635,6 +1675,32 @@ function ResearchPage({ onNavigate }) {
                 )}
               </div>
             )}
+          </div>
+
+          {/* ─── Timeline ─── */}
+          <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:32}}>
+            <div style={{fontFamily:F,fontSize:20,fontWeight:700,color:D,marginBottom:4}}>{c.E("timeline_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:28}}>{c.E("timeline_description")}</div>
+            <div style={{position:"relative",paddingLeft:28}}>
+              <div style={{position:"absolute",left:8,top:6,bottom:6,width:2,background:B}}/>
+              {[...TARIFF_TIMELINE].reverse().map((t,i)=>{
+                const tagColors={IEEPA:{bg:ACCSOFT,color:ACC},Pause:{bg:"#fef3c7",color:"#92400e"},Reduction:{bg:"#dbeafe",color:"#1e40af"},Data:{bg:"#f3f4f6",color:M},SCOTUS:{bg:"rgba(16,185,129,0.12)",color:"#065f46"},Replacement:{bg:"#ede9fe",color:"#5b21b6"}};
+                const tc=tagColors[t.tag]||tagColors.Data;
+                const isScotus=t.tag==="SCOTUS";
+                return(
+                  <div key={i} style={{display:"flex",gap:16,marginBottom:i<TARIFF_TIMELINE.length-1?20:0,position:"relative"}}>
+                    <div style={{position:"absolute",left:-22,top:6,width:14,height:14,borderRadius:7,background:isScotus?ACC:"#fff",border:isScotus?"none":`2px solid ${B}`,boxShadow:isScotus?`0 0 8px ${ACC}`:"none"}}/>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                        <span style={{fontFamily:F,fontSize:13,fontWeight:700,color:D}}>{t.date}</span>
+                        <span style={{fontFamily:F,fontSize:10,fontWeight:600,color:tc.color,background:tc.bg,padding:"2px 8px",borderRadius:4}}>{t.tag}</span>
+                      </div>
+                      <div style={{fontFamily:F,fontSize:14,color:isScotus?D:M,fontWeight:isScotus?600:400,lineHeight:"1.5"}}>{t.event}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* ─── Cumulative Revenue Chart ─── */}
@@ -1804,31 +1870,52 @@ function ResearchPage({ onNavigate }) {
             );
           })()}
 
-          {/* ─── Key Stats Row ─── */}
-          <div className="grid-4col" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:32}}>
-            {[
-              {num:"$175B+",label:"Total IEEPA duties collected",sub:"Penn Wharton est.; CBP reported $166B",color:ACC},
-              {num:"52%",label:"Of all customs revenue",sub:"Largest single tariff authority",color:"#f59e0b"},
-              {num:"~$500M",label:"Collected per day",sub:"Average daily collections",color:"#a78bfa"},
-              {num:"$1,300",label:"Cost per household",sub:"Average IEEPA tariff burden",color:"#60a5fa"},
-            ].map((s,i)=>(
-              <div key={i} style={{background:"#fff",borderRadius:10,padding:"24px 20px",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)"}}>
-                <div style={{fontFamily:F,fontSize:32,fontWeight:800,color:s.color,letterSpacing:"-0.02em",marginBottom:6}}>{s.num}</div>
-                <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:D,marginBottom:2}}>{s.label}</div>
-                <div style={{fontFamily:F,fontSize:12,color:M}}>{s.sub}</div>
+          {/* ─── Appeals & Expected Timeline ─── */}
+          <div style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:32}}>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Legal Landscape</div>
+            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>Appeals & Expected Timeline</div>
+            <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.7",marginBottom:24}}>The path to refunds is clear in principle — the Supreme Court ruled 6–3 that IEEPA tariffs are unlawful — but the federal government is actively working to delay and challenge the repayment process. Here's where things stand.</div>
+
+            {/* Timeline — horizontal on desktop, vertical on mobile */}
+            <div className="appeals-timeline-wrap" style={{overflowX:"auto",marginBottom:32,paddingBottom:8}}>
+              <div className="appeals-timeline" style={{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:0,minWidth:900,position:"relative"}}>
+                {/* Connecting line */}
+                <div className="appeals-line-h" style={{position:"absolute",top:5,left:6,right:6,height:2,background:B,zIndex:0}}/>
+                <div className="appeals-line-v" style={{display:"none",position:"absolute",top:6,left:5,bottom:6,width:2,background:B,zIndex:0}}/>
+                {[
+                  {date:"Feb 20",title:"SCOTUS strikes down IEEPA tariffs",desc:"6–3 ruling in Learning Resources v. Trump holds IEEPA does not authorize tariffs.",color:ACC},
+                  {date:"Mar 2",title:"Federal Circuit denies stay",desc:"Unanimously rejected government's stay request; mandate issued to CIT immediately.",color:"#3b82f6"},
+                  {date:"Mar 4",title:"CIT orders nationwide refunds",desc:"Judge Eaton rules all importers — not just litigants — entitled to refunds.",color:"#3b82f6"},
+                  {date:"Mar 6",title:"CIT pauses for CBP buildout",desc:"Immediate refunds paused while CBP builds automated processing for 53M+ entries.",color:"#f59e0b"},
+                  {date:"~Apr 20",title:"CBP refund system target",desc:"CBP needs ~45 days for new ACE functionality to handle mass reliquidations.",color:"#a78bfa"},
+                  {date:"~May 3",title:"Gov't appeal deadline",desc:"60 days to appeal. Expected to challenge nationwide scope under Trump v. CASA.",color:ACC},
+                ].map((e,i)=>(
+                  <div key={i} style={{position:"relative",paddingTop:20,paddingRight:i<5?16:0}}>
+                    <div className="appeals-dot" style={{position:"absolute",top:0,left:0,width:12,height:12,borderRadius:"50%",background:e.color,border:"2px solid #fff",zIndex:1}}/>
+                    <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:e.color,letterSpacing:"0.04em",textTransform:"uppercase",marginBottom:4}}>{e.date}</div>
+                    <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:D,marginBottom:3,lineHeight:"1.3"}}>{e.title}</div>
+                    <div style={{fontFamily:F,fontSize:12,color:M,lineHeight:"1.5"}}>{e.desc}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* The Nationwide Injunction Issue */}
+            <div style={{background:BG,borderRadius:0,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",padding:"24px 22px",marginBottom:28}}>
+              <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:D,marginBottom:8}}>The Nationwide Injunction Question</div>
+              <div style={{fontFamily:F,fontSize:13,color:M,lineHeight:"1.7",marginBottom:12}}>The government's most likely appellate argument centers on <strong style={{color:D}}>Trump v. CASA, Inc.</strong> (2025), where the Supreme Court ruled 6–3 that federal courts generally cannot issue "universal" or "nationwide" injunctions — relief must be limited to what's needed to give the plaintiff "complete relief."</div>
+              <div style={{fontFamily:F,fontSize:13,color:M,lineHeight:"1.7",marginBottom:12}}>The CIT's March 4 order cuts against this precedent by consolidating all IEEPA refund cases before one judge and applying relief to all 330,000+ importers — including those who never filed suit. Judge Eaton reasoned that CASA doesn't apply to the CIT because the Customs Courts Act of 1980 grants the CIT "national geographic jurisdiction" and exclusive authority over tariff disputes, distinguishing it from ordinary federal district courts.</div>
+              <div style={{fontFamily:F,fontSize:13,color:M,lineHeight:"1.7"}}>This tension sets up a direct appeal to the Federal Circuit — and potentially back to the Supreme Court — on whether the CIT's unique statutory mandate exempts it from the CASA framework. Legal scholars are divided, but importers should prepare for this question to add months to the refund timeline.</div>
+            </div>
+
+
           </div>
 
-          {/* ─── Data Note ─── */}
-          <div style={{fontFamily:F,fontSize:13,color:M,lineHeight:"1.6",background:"#fafaf8",borderRadius:10,padding:"20px 24px",marginBottom:32,border:"1px solid "+B}}>
-            <strong style={{color:D}}>Note on collection figures:</strong> The Penn Wharton Budget Model estimates total IEEPA tariff collections at $175B+. CBP's own court filings in <em>Atmus Filtration v. United States</em> (Case 1:26-cv-01259-RKE) report $166B collected across 53 million entries from over 330,000 importers. The difference likely reflects Penn Wharton's broader modeling methodology, which may include accrued or projected amounts beyond CBP's formal ledger. Charts on this page sourced from Penn Wharton use the $175B figure; all other site references use CBP's $166B figure as the authoritative total.
-          </div>
-
-          {/* ─── Sources ─── */}
-          <div className="card-section" style={{background:DARK,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"32px 28px"}}>
-            <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:"#fff",marginBottom:16}}>Sources & Further Reading</div>
-            <div className="research-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          {/* ─── Key Stats + Sources + Note ─── */}
+          <div className="card-section" style={{background:DARK,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"28px 28px 32px",marginBottom:32}}>
+            {/* Sources */}
+            <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:"#fff",marginBottom:16}}>{c.E("sources_title")}</div>
+            <div className="research-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}}>
               {[
                 {title:"IEEPA Revenue and Potential Refunds",source:"Penn Wharton Budget Model",url:"https://budgetmodel.wharton.upenn.edu/issues/2026/2/20/supreme-court-tariff-ruling-ieepa-revenue-and-potential-refunds",date:"Feb 20, 2026"},
                 {title:"State of U.S. Tariffs: SCOTUS Ruling Update",source:"Yale Budget Lab",url:"https://budgetlab.yale.edu/research/state-us-tariffs-february-20-2026",date:"Feb 20, 2026"},
@@ -1837,7 +1924,7 @@ function ResearchPage({ onNavigate }) {
                 {title:"IEEPA Frequently Asked Questions",source:"U.S. Customs & Border Protection",url:"https://www.cbp.gov/trade/programs-administration/trade-remedies/IEEPA-FAQ",date:"Updated Feb 2026"},
                 {title:"Learning Resources, Inc. v. Trump, 607 U.S. __ (2026)",source:"Supreme Court",url:"#",date:"Feb 20, 2026"},
               ].map((s,i)=>(
-                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,background:DARKCARD,borderRadius:12,border:"1px solid "+DARKBORDER,padding:"16px 18px",textDecoration:"none",transition:"border-color 0.2s"}}>
+                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,background:DARKCARD,borderRadius:0,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",padding:"16px 18px",textDecoration:"none",transition:"border-color 0.2s"}}>
                   <div>
                     <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:"#fff",marginBottom:3}}>{s.title}</div>
                     <div style={{fontFamily:F,fontSize:11,color:DARKMUTED}}>{s.source} · {s.date}</div>
@@ -1846,12 +1933,17 @@ function ResearchPage({ onNavigate }) {
                 </a>
               ))}
             </div>
+
+            {/* Note on collection figures */}
+            <div style={{fontFamily:F,fontSize:12,color:DARKMUTED,lineHeight:"1.6",borderTop:"1px solid "+DARKBORDER,paddingTop:16}}>
+              <strong style={{color:"#ccc"}}>{c.E("note_label")}</strong> {c.E("note_text")}
+            </div>
           </div>
 
           {/* CTA */}
           <div style={{textAlign:"center",marginTop:48}}>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:12}}>Ready to recover your tariff overpayments?</div>
-            <button onClick={()=>onNavigate("home")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(255,107,90,0.25)"}}>Get a free assessment →</button>
+            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:12}}>{c.E("cta_title")}</div>
+            <button className="btn-acc" onClick={()=>onNavigate("home")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>{c.E("cta_button")} →</button>
           </div>
         </div>
       </div>
@@ -1883,6 +1975,7 @@ const OPTIONAL_FIELDS = [
 ];
 
 function DataGuidePage({ onNavigate }) {
+  const c = useEditableContent("data_guide");
   return (
     <div style={{minHeight:"100vh",fontFamily:F}}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -1895,9 +1988,9 @@ function DataGuidePage({ onNavigate }) {
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
         <div style={{position:"absolute",top:"-20%",left:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(96,165,250,0.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:800,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Data Guide</div>
-          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>How to Get Your Data</h1>
-          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>Pull your entry data from CBP's ACE portal to calculate your potential IEEPA tariff refund. Here's exactly what you need and how to get it.</p>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("page_label")}</div>
+          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>{c.E("page_title")}</h1>
+          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>{c.E("page_description")}</p>
         </div>
       </div>
 
@@ -1907,9 +2000,9 @@ function DataGuidePage({ onNavigate }) {
 
           {/* Step 1: Choose your approach */}
           <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:24}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Step 1</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>Choose your report type</div>
-            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>There are two ways to pull your data from ACE. Either works.</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{c.E("step_1_label")}</div>
+            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>{c.E("step_1_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>{c.E("step_1_description")}</div>
             <div className="data-guide-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
               <div style={{border:"2px solid "+D,borderRadius:8,padding:"24px 22px",position:"relative"}}>
                 <div style={{position:"absolute",top:12,right:12,fontFamily:F,fontSize:10,fontWeight:700,color:"#fff",background:D,borderRadius:6,padding:"3px 10px",letterSpacing:"0.04em",textTransform:"uppercase"}}>Recommended</div>
@@ -1928,9 +2021,9 @@ function DataGuidePage({ onNavigate }) {
 
           {/* Step 2: Required Fields */}
           <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:24}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Step 2</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>Required Fields</div>
-            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>We need these {REQUIRED_FIELDS.length} fields to calculate your refund estimate.</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{c.E("step_2_label")}</div>
+            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>{c.E("required_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>{c.E("required_description")}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {REQUIRED_FIELDS.map((f,i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",background:"#f5f4f0",borderRadius:10}}>
@@ -1948,9 +2041,9 @@ function DataGuidePage({ onNavigate }) {
 
           {/* Optional Fields */}
           <div className="card-section" style={{background:"#fff",borderRadius:10,boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 8px 30px rgba(0,0,0,0.07)",padding:"36px 32px",marginBottom:24}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:M,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Optional</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>Optional Fields</div>
-            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>Include these for better accuracy in your refund estimate.</div>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:M,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{c.E("step_3_label")}</div>
+            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:6}}>{c.E("optional_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:M,marginBottom:24}}>{c.E("optional_description")}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {OPTIONAL_FIELDS.map((f,i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",borderRadius:10,background:"#faf9f6"}}>
@@ -1973,19 +2066,19 @@ function DataGuidePage({ onNavigate }) {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
               <div>
-                <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:D,marginBottom:6}}>Recommended Date Range</div>
-                <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.7"}}>While the ACE portal has 5 years of entry data, the first IEEPA tariffs only started appearing in <strong style={{color:D}}>February 2025</strong>. We strongly recommend setting the reporting period to an Entry Date of <strong style={{color:D}}>February 2025 or later</strong> to keep your file size manageable.</div>
+                <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:D,marginBottom:6}}>{c.E("date_range_title")}</div>
+                <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.7"}}>{c.E("date_range_description")}</div>
               </div>
             </div>
           </div>
 
           {/* Need help */}
           <div className="card-section" style={{background:DARK,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"36px 32px",textAlign:"center"}}>
-            <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:"#fff",marginBottom:10}}>Need help pulling your ACE report?</div>
-            <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.6",maxWidth:500,margin:"0 auto 24px"}}>If you're not familiar with the ACE portal or need help getting an account, our team can walk you through it.</div>
+            <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:"#fff",marginBottom:10}}>{c.E("help_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.6",maxWidth:500,margin:"0 auto 24px"}}>{c.E("help_description")}</div>
             <div style={{display:"flex",gap:12,justifyContent:"center"}}>
-              <button onClick={()=>onNavigate("contact")} style={{padding:"12px 28px",borderRadius:10,border:"1px solid "+DARKBORDER,background:DARKCARD,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Contact us</button>
-              <button onClick={()=>onNavigate("home")} style={{padding:"12px 28px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(255,107,90,0.25)"}}>Get a free assessment →</button>
+              <button onClick={()=>onNavigate("contact")} style={{padding:"12px 28px",borderRadius:10,border:"1px solid "+DARKBORDER,background:DARKCARD,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>{c.E("button_contact")}</button>
+              <button className="btn-acc" onClick={()=>{onNavigate("home");setTimeout(()=>{const el=document.querySelector('[data-form]');el?.scrollIntoView({behavior:"smooth"});},300);}} style={{padding:"12px 28px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>{c.E("button_get_started")} →</button>
             </div>
           </div>
 
@@ -2001,6 +2094,7 @@ function DataGuidePage({ onNavigate }) {
    CIT CASE TRACKER PAGE
 ═══════════════════════════════════════════════════════ */
 function CaseTrackerPage({ onNavigate }) {
+  const c = useEditableContent("cases");
   const [cases, setCases] = useState([]);
   const [lastUpdated, setLastUpdated] = useState("");
   const [search, setSearch] = useState("");
@@ -2055,7 +2149,7 @@ function CaseTrackerPage({ onNavigate }) {
   const filedCount = cases.filter(c=>c.status==="Filed").length;
   const remandCount = cases.filter(c=>c.status==="Remand").length;
 
-  const statusColors = {Stayed:"#f59e0b",Filed:"#60a5fa",Remand:ACC};
+  const statusColors = {Stayed:"#f59e0b",Filed:"#60a5fa",Remand:"#a78bfa"};
 
   return (
     <div style={{minHeight:"100vh",fontFamily:F}}>
@@ -2066,33 +2160,33 @@ function CaseTrackerPage({ onNavigate }) {
       {/* Hero */}
       <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
-        <div style={{position:"absolute",top:"-20%",right:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,90,0.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
+        <div style={{position:"absolute",top:"-20%",right:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(242,86,80,0.12) 0%,transparent 70%)",filter:"blur(80px)"}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:1100,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>CIT Case Tracker</div>
-          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>IEEPA Tariff Cases at the Court of International Trade</h1>
-          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>Live database of all {cases.length.toLocaleString()} cases filed at the U.S. Court of International Trade related to IEEPA tariff recovery since the Supreme Court ruling on Feb. 20, 2026.</p>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.E("page_label")}</div>
+          <h1 style={{fontFamily:S,fontSize:"clamp(32px,4.5vw,52px)",fontWeight:800,color:"#fff",marginBottom:16}}>{c.E("page_title")}</h1>
+          <p style={{fontFamily:F,fontSize:17,color:DARKMUTED,maxWidth:640,margin:"0 auto",lineHeight:1.6}}>{c("page_description").replace("{count}", cases.length.toLocaleString())}</p>
+
+          {/* Stats row */}
+          <div className="grid-4col" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginTop:40}}>
+            {[
+              {num:cases.length.toString(),label:c("stat_total_label"),sub:c("stat_total_sub"),color:ACC},
+              {num:stayedCount.toString(),label:c("stat_stayed_label"),sub:c("stat_stayed_sub"),color:"#f59e0b"},
+              {num:filedCount.toString(),label:c("stat_filed_label"),sub:c("stat_filed_sub"),color:"#60a5fa"},
+              {num:remandCount.toString(),label:c("stat_remand_label"),sub:c("stat_remand_sub"),color:"#a78bfa"},
+            ].map((s,i)=>(
+              <div key={i} style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"24px 20px"}}>
+                <div style={{fontFamily:F,fontSize:32,fontWeight:800,color:s.color,letterSpacing:"-0.02em",marginBottom:6}}>{s.num}</div>
+                <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:"#fff",marginBottom:2}}>{s.label}</div>
+                <div style={{fontFamily:F,fontSize:12,color:DARKMUTED}}>{s.sub}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="subpage-content" style={{background:"#f5f4f0",padding:"60px 32px 100px"}}>
         <div style={{maxWidth:1200,margin:"0 auto"}}>
-
-          {/* Stats row */}
-          <div className="grid-4col" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:32}}>
-            {[
-              {num:cases.length.toString(),label:"Total Cases Filed",sub:"Since Feb 20, 2026",color:ACC},
-              {num:stayedCount.toString(),label:"Cases Stayed",sub:"Pending consolidated review",color:"#f59e0b"},
-              {num:filedCount.toString(),label:"Newly Filed",sub:"Awaiting assignment",color:"#60a5fa"},
-              {num:remandCount.toString(),label:"On Remand",sub:"Returned from higher court",color:"#a78bfa"},
-            ].map((s,i)=>(
-              <div key={i} style={{background:"#fff",borderRadius:10,padding:"24px 20px",boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)"}}>
-                <div style={{fontFamily:F,fontSize:32,fontWeight:800,color:s.color,letterSpacing:"-0.02em",marginBottom:6}}>{s.num}</div>
-                <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:D,marginBottom:2}}>{s.label}</div>
-                <div style={{fontFamily:F,fontSize:12,color:M}}>{s.sub}</div>
-              </div>
-            ))}
-          </div>
 
           {/* ─── Atmus Filtration Landmark Order Callout ─── */}
           <div style={{background:"linear-gradient(135deg,#fffbeb,#fef3c7)",borderRadius:10,border:"1px solid #fcd34d",boxShadow:"0 1px 3px rgba(0,0,0,0.04),0 8px 30px rgba(245,158,11,0.08)",padding:"24px 28px",marginBottom:24}}>
@@ -2102,16 +2196,16 @@ function CaseTrackerPage({ onNavigate }) {
               </div>
               <div style={{flex:1,minWidth:260}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6,flexWrap:"wrap"}}>
-                  <span style={{fontFamily:F,fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.06em"}}>Landmark Order</span>
-                  <span style={{fontFamily:F,fontSize:11,fontWeight:600,color:M}}>March 4, 2026</span>
+                  <span style={{fontFamily:F,fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.06em"}}>{c.E("atmus_badge")}</span>
+                  <span style={{fontFamily:F,fontSize:11,fontWeight:600,color:M}}>{c.E("atmus_date")}</span>
                 </div>
-                <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:D,marginBottom:6}}>Atmus Filtration, Inc. v. United States <span style={{fontWeight:400,color:M,fontSize:14}}>(1:26-cv-01259)</span></div>
+                <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:D,marginBottom:6}}>{c.E("atmus_title")}</div>
                 <div style={{fontFamily:F,fontSize:13,color:"#374151",lineHeight:"1.65",marginBottom:12}}>
-                  Judge Richard Eaton issued a universal order directing CBP to liquidate all unliquidated IEEPA entries and reliquidate all non-final liquidated entries without regard to IEEPA duties — extending relief to <strong>all importers of record</strong>, not just parties who filed suit. Judge Eaton has been designated the sole CIT judge for IEEPA refund cases.
+                  {c.E("atmus_description")}
                 </div>
                 <a href="https://storage.courtlistener.com/recap/gov.uscourts.cit.19346/gov.uscourts.cit.19346.21.0.pdf" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 16px",borderRadius:10,background:"#f59e0b",color:"#fff",fontFamily:F,fontSize:13,fontWeight:600,textDecoration:"none"}}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-                  Read the Order (PDF)
+                  {c.E("atmus_link")}
                 </a>
               </div>
             </div>
@@ -2123,15 +2217,18 @@ function CaseTrackerPage({ onNavigate }) {
               <div style={{position:"relative"}}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)"}}><circle cx="7" cy="7" r="5.5" stroke={M} strokeWidth="1.5"/><path d="M11 11L14 14" stroke={M} strokeWidth="1.5" strokeLinecap="round"/></svg>
                 <input
-                  type="text" placeholder="Search by company, case number, or product..."
+                  type="text" placeholder={c("search_placeholder")}
                   value={search} onChange={e=>{setSearch(e.target.value);setPage(0);}}
                   style={{width:"100%",padding:"10px 14px 10px 36px",borderRadius:10,border:"1.5px solid "+B,fontFamily:F,fontSize:14,color:D,background:"#faf9f6"}}
                 />
               </div>
               <div style={{display:"flex",gap:8}}>
-                {[["all","All"],["Stayed","Stayed"],["Filed","Filed"],["Remand","Remand"]].map(([val,label])=>(
-                  <button key={val} onClick={()=>{setStatusFilter(val);setPage(0);}} style={{padding:"8px 16px",borderRadius:8,border:statusFilter===val?"1.5px solid "+ACC:"1.5px solid "+B,background:statusFilter===val?ACCSOFT:"#fff",color:statusFilter===val?ACC:M,fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer"}}>{label}</button>
-                ))}
+                {[["all",c("filter_all")],["Stayed",c("filter_stayed")],["Filed",c("filter_filed")],["Remand",c("filter_remand")]].map(([val,label])=>{
+                  const filterColors={all:ACC,Stayed:"#f59e0b",Filed:"#60a5fa",Remand:"#a78bfa"};
+                  const fc=filterColors[val];
+                  const active=statusFilter===val;
+                  return <button key={val} onClick={()=>{setStatusFilter(val);setPage(0);}} style={{padding:"8px 16px",borderRadius:8,border:active?`1.5px solid ${fc}`:"1.5px solid "+B,background:active?fc+"18":"#fff",color:active?fc:M,fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer"}}>{label}</button>;
+                })}
               </div>
             </div>
           </div>
@@ -2141,11 +2238,11 @@ function CaseTrackerPage({ onNavigate }) {
             <table style={{width:"100%",borderCollapse:"collapse",fontFamily:F,fontSize:13}}>
               <thead>
                 <tr style={{background:"#faf9f6",borderBottom:"2px solid "+B}}>
-                  <th onClick={()=>toggleSort("caseNumber")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",whiteSpace:"nowrap",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>Case #<SortIcon field="caseNumber"/></th>
-                  <th onClick={()=>toggleSort("title")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>Party<SortIcon field="title"/></th>
-                  <th onClick={()=>toggleSort("filedDate")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",whiteSpace:"nowrap",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>Filed<SortIcon field="filedDate"/></th>
-                  <th onClick={()=>toggleSort("status")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>Status<SortIcon field="status"/></th>
-                  <th style={{padding:"12px 16px",textAlign:"center",fontWeight:700,color:D,fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>Complaint</th>
+                  <th onClick={()=>toggleSort("caseNumber")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",whiteSpace:"nowrap",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>{c.E("table_header_case")}<SortIcon field="caseNumber"/></th>
+                  <th onClick={()=>toggleSort("title")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>{c.E("table_header_party")}<SortIcon field="title"/></th>
+                  <th onClick={()=>toggleSort("filedDate")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",whiteSpace:"nowrap",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>{c.E("table_header_filed")}<SortIcon field="filedDate"/></th>
+                  <th onClick={()=>toggleSort("status")} style={{padding:"12px 16px",textAlign:"left",fontWeight:700,color:D,cursor:"pointer",fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>{c.E("table_header_status")}<SortIcon field="status"/></th>
+                  <th style={{padding:"12px 16px",textAlign:"center",fontWeight:700,color:D,fontSize:12,textTransform:"uppercase",letterSpacing:"0.04em"}}>{c.E("table_header_complaint")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -2158,15 +2255,15 @@ function CaseTrackerPage({ onNavigate }) {
                     <td style={{padding:"10px 16px",textAlign:"center"}}><a href={`https://www.courtlistener.com/?q=%22${encodeURIComponent(c.caseNumber)}%22&type=r&court=cit`} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 12px",borderRadius:6,border:"1px solid "+B,background:"#faf9f6",fontFamily:F,fontSize:11,fontWeight:600,color:D,textDecoration:"none",whiteSpace:"nowrap"}}>View <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5L11.5 4.5M11.5 4.5H6M11.5 4.5V10" stroke={M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></a></td>
                   </tr>
                 ))}
-                {visible.length===0&&<tr><td colSpan={5} style={{padding:"32px 16px",textAlign:"center",color:M}}>No cases match your search.</td></tr>}
+                {visible.length===0&&<tr><td colSpan={5} style={{padding:"32px 16px",textAlign:"center",color:M}}>{c.E("no_results")}</td></tr>}
               </tbody>
             </table>
             {totalPages > 1 && (
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",borderTop:"1px solid "+B,background:"#faf9f6"}}>
                 <div style={{fontFamily:F,fontSize:12,color:M}}>Showing {page*PER_PAGE+1}–{Math.min((page+1)*PER_PAGE,sorted.length)} of {sorted.length} cases</div>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page===0?M:D,cursor:page===0?"default":"pointer"}}>← Prev</button>
-                  <button onClick={()=>setPage(p=>Math.min(totalPages-1,p+1))} disabled={page>=totalPages-1} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page>=totalPages-1?M:D,cursor:page>=totalPages-1?"default":"pointer"}}>Next →</button>
+                  <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page===0?M:D,cursor:page===0?"default":"pointer"}}>{c.E("pagination_prev")}</button>
+                  <button onClick={()=>setPage(p=>Math.min(totalPages-1,p+1))} disabled={page>=totalPages-1} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page>=totalPages-1?M:D,cursor:page>=totalPages-1?"default":"pointer"}}>{c.E("pagination_next")}</button>
                 </div>
               </div>
             )}
@@ -2187,13 +2284,13 @@ function CaseTrackerPage({ onNavigate }) {
                 </div>
               </div>
             ))}
-            {visible.length===0&&<div style={{padding:"32px 16px",textAlign:"center",color:M,background:"#fff",borderRadius:8,boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>No cases match your search.</div>}
+            {visible.length===0&&<div style={{padding:"32px 16px",textAlign:"center",color:M,background:"#fff",borderRadius:8,boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>{c.E("no_results")}</div>}
             {totalPages > 1 && (
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
                 <div style={{fontFamily:F,fontSize:12,color:M}}>Showing {page*PER_PAGE+1}–{Math.min((page+1)*PER_PAGE,sorted.length)} of {sorted.length}</div>
                 <div style={{display:"flex",gap:6}}>
-                  <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page===0?M:D,cursor:page===0?"default":"pointer"}}>← Prev</button>
-                  <button onClick={()=>setPage(p=>Math.min(totalPages-1,p+1))} disabled={page>=totalPages-1} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page>=totalPages-1?M:D,cursor:page>=totalPages-1?"default":"pointer"}}>Next →</button>
+                  <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page===0?M:D,cursor:page===0?"default":"pointer"}}>{c.E("pagination_prev")}</button>
+                  <button onClick={()=>setPage(p=>Math.min(totalPages-1,p+1))} disabled={page>=totalPages-1} style={{padding:"6px 12px",borderRadius:6,border:"1px solid "+B,background:"#fff",fontFamily:F,fontSize:12,fontWeight:600,color:page>=totalPages-1?M:D,cursor:page>=totalPages-1?"default":"pointer"}}>{c.E("pagination_next")}</button>
                 </div>
               </div>
             )}
@@ -2202,25 +2299,25 @@ function CaseTrackerPage({ onNavigate }) {
           {/* Inline CTA banner */}
           <div style={{background:`linear-gradient(135deg,${ACCSOFT},#fff0ed)`,borderRadius:10,border:`1px solid ${ACC}30`,padding:"20px 28px",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
             <div>
-              <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:D,marginBottom:4}}>Haven't filed yet? Time is running out.</div>
-              <div style={{fontFamily:F,fontSize:13,color:M}}>The 180-day protest window is ticking. Check your eligibility for a refund today.</div>
+              <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:D,marginBottom:4}}>{c.E("inline_cta_title")}</div>
+              <div style={{fontFamily:F,fontSize:13,color:M}}>{c.E("inline_cta_description")}</div>
             </div>
-            <button onClick={()=>onNavigate("home")} style={{padding:"10px 24px",borderRadius:8,border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",boxShadow:"0 2px 12px rgba(255,107,90,0.2)"}}>Check eligibility →</button>
+            <button className="btn-acc" onClick={()=>onNavigate("home")} style={{padding:"10px 24px",borderRadius:8,border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",boxShadow:"0 2px 12px rgba(242,86,80,0.2)"}}>{c.E("inline_cta_button")} →</button>
           </div>
 
           {/* Source attribution */}
           <div style={{fontFamily:F,fontSize:12,color:M,textAlign:"center",lineHeight:1.6}}>
-            Data sourced from <a href="https://ecf.cit.uscourts.gov" target="_blank" rel="noopener noreferrer" style={{color:D,textDecoration:"underline",textUnderlineOffset:2}}>PACER — U.S. Court of International Trade</a>.
-            {lastUpdated && <> Last updated: {lastUpdated}.</>} Updated daily via CIT RSS feed.
+            {c.E("attribution_text")} <a href="https://ecf.cit.uscourts.gov" target="_blank" rel="noopener noreferrer" style={{color:D,textDecoration:"underline",textUnderlineOffset:2}}>PACER — U.S. Court of International Trade</a>.
+            {lastUpdated && <> {c.E("attribution_updated")} {lastUpdated}.</>} {c.E("attribution_note")}
           </div>
 
           {/* CTA */}
           <div className="card-section" style={{background:DARK,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"36px 32px",textAlign:"center",marginTop:32}}>
-            <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:"#fff",marginBottom:10}}>Is your company listed here?</div>
-            <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.6",maxWidth:500,margin:"0 auto 24px"}}>If you've paid IEEPA tariffs but haven't filed a case yet, time is running out. Let us assess your eligibility for a refund.</div>
+            <div style={{fontFamily:S,fontSize:24,fontWeight:700,color:"#fff",marginBottom:10}}>{c.E("cta_title")}</div>
+            <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.6",maxWidth:500,margin:"0 auto 24px"}}>{c.E("cta_description")}</div>
             <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-              <button onClick={()=>onNavigate("contact")} style={{padding:"12px 28px",borderRadius:10,border:"1px solid "+DARKBORDER,background:DARKCARD,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Contact us</button>
-              <button onClick={()=>onNavigate("home")} style={{padding:"12px 28px",borderRadius:10,border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(255,107,90,0.25)"}}>Get a free assessment →</button>
+              <button onClick={()=>onNavigate("contact")} style={{padding:"12px 28px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:DARKCARD,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Contact us</button>
+              <button className="btn-acc" onClick={()=>onNavigate("home")} style={{padding:"12px 28px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>Get started →</button>
             </div>
           </div>
 
@@ -2235,7 +2332,7 @@ function CaseTrackerPage({ onNavigate }) {
 /* ═══════════════════════════════════════════════════════
    ROUTER
 ═══════════════════════════════════════════════════════ */
-const PAGES = {"research":"research","about":"about","contact":"contact","data-guide":"data-guide","calculator":"calculator","cases":"cases","privacy":"privacy","terms":"terms","unsubscribe":"unsubscribe"};
+const PAGES = {"research":"research","about":"about","contact":"contact","data-guide":"data-guide","calculator":"calculator","cases":"cases","brokers":"brokers","privacy":"privacy","terms":"terms","unsubscribe":"unsubscribe"};
 const hashToPage = () => {
   const h = window.location.hash.replace("#","");
   // Ignore Supabase auth callback hash fragments
@@ -2248,7 +2345,7 @@ const hashToPage = () => {
 /* ─── Shared nav bar ─── */
 function NavBar({ onNavigate, current, onHowItWorks }) {
   const [mobileMenu, setMobileMenu] = useState(false);
-  const links = [["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["About Us","about"]];
+  const links = [["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["For Brokers","brokers"],["About Us","about"]];
   return (
     <div className="shared-nav" style={{background:DARK,position:"sticky",top:0,zIndex:100}}>
       <style>{SHARED_MOBILE_CSS}</style>
@@ -2264,7 +2361,7 @@ function NavBar({ onNavigate, current, onHowItWorks }) {
             {links.map(([label,key])=>(
               <a key={key} href={"#"+key} style={{fontFamily:F,fontSize:14,color:current===key?"#fff":DARKMUTED,textDecoration:"none",fontWeight:current===key?600:500,borderBottom:current===key?"2px solid "+ACC:"2px solid transparent",paddingBottom:2}} onClick={e=>{e.preventDefault();onNavigate(key);}}>{label}</a>
             ))}
-            <button onClick={()=>onNavigate("home")} style={{padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Get a free assessment</button>
+            <button className="btn-acc" onClick={()=>onNavigate("home")} style={{padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:14,fontWeight:600,cursor:"pointer"}}>Get started</button>
           </div>
         </div>
         {mobileMenu&&<div className="nav-links-mobile" style={{position:"absolute",left:0,right:0,top:"100%",zIndex:9999,background:DARK,display:"flex",flexDirection:"column",gap:0,borderTop:"1px solid "+DARKBORDER,boxShadow:"0 16px 48px rgba(0,0,0,0.6)"}}>
@@ -2272,7 +2369,7 @@ function NavBar({ onNavigate, current, onHowItWorks }) {
             <a key={key} href={"#"+key} style={{fontFamily:F,fontSize:16,color:current===key?"#fff":"rgba(255,255,255,0.8)",textDecoration:"none",fontWeight:current===key?600:500,padding:"14px 24px",borderBottom:"1px solid "+DARKBORDER}} onClick={e=>{e.preventDefault();setMobileMenu(false);onNavigate(key);}}>{label}</a>
           ))}
           <div style={{padding:"16px 24px"}}>
-            <button onClick={()=>{setMobileMenu(false);onNavigate("home");}} style={{width:"100%",padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:"pointer",textAlign:"center"}}>Get a free assessment</button>
+            <button className="btn-acc" onClick={()=>{setMobileMenu(false);onNavigate("home");}} style={{width:"100%",padding:"12px 22px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:"pointer",textAlign:"center"}}>Get started</button>
           </div>
         </div>}
       </nav>
@@ -2282,13 +2379,14 @@ function NavBar({ onNavigate, current, onHowItWorks }) {
 
 /* ─── Shared footer ─── */
 function Footer({ onNavigate }) {
+  const c = useEditableContent("footer");
   return (
     <div className="footer-pad" style={{background:DARK,padding:"32px 32px 28px",borderTop:"1px solid "+DARKBORDER}}>
       <div style={{maxWidth:1100,margin:"0 auto"}}>
         <div className="footer-row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
           <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>onNavigate("home")}><Logo size={36}/><span style={{fontFamily:F,fontWeight:700,fontSize:17,color:"#fff",letterSpacing:"-0.02em"}}>Rewind Tariffs</span></div>
           <div style={{display:"flex",alignItems:"center",gap:24}}>
-            {[["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["About Us","about"],["Contact","contact"]].map(([l,k])=>(
+            {[["Refund Calculator","calculator"],["Case Tracker","cases"],["News & Research","research"],["About Us","about"],["For Brokers","brokers"],["Contact","contact"]].map(([l,k])=>(
               <a key={k} href={"#"+k} onClick={e=>{e.preventDefault();onNavigate(k);}} style={{fontFamily:F,fontSize:13,color:DARKMUTED,textDecoration:"none"}}>
                 {l}
               </a>
@@ -2296,15 +2394,15 @@ function Footer({ onNavigate }) {
           </div>
         </div>
         <div className="footer-bottom" style={{borderTop:"1px solid "+DARKBORDER,paddingTop:16,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontFamily:F,fontSize:12,color:DARKMUTED}}>© 2026 Turnpage Digital Markets LLC. All rights reserved.</div>
+          <div style={{fontFamily:F,fontSize:12,color:DARKMUTED}}>{c.E("copyright")}</div>
           <div style={{display:"flex",alignItems:"center",gap:20}}>
-            <a href="#privacy" onClick={e=>{e.preventDefault();onNavigate("privacy");}} style={{fontFamily:F,fontSize:12,color:DARKMUTED,textDecoration:"none"}}>Privacy Policy</a>
-            <a href="#terms" onClick={e=>{e.preventDefault();onNavigate("terms");}} style={{fontFamily:F,fontSize:12,color:DARKMUTED,textDecoration:"none"}}>Terms of Use</a>
+            <a href="#privacy" onClick={e=>{e.preventDefault();onNavigate("privacy");}} style={{fontFamily:F,fontSize:12,color:DARKMUTED,textDecoration:"none"}}>{c.E("link_privacy")}</a>
+            <a href="#terms" onClick={e=>{e.preventDefault();onNavigate("terms");}} style={{fontFamily:F,fontSize:12,color:DARKMUTED,textDecoration:"none"}}>{c.E("link_terms")}</a>
           </div>
         </div>
         <div style={{borderTop:"1px solid "+DARKBORDER,marginTop:16,paddingTop:16}}>
           <div style={{fontFamily:F,fontSize:11,color:DARKMUTED,lineHeight:"1.7",maxWidth:900}}>
-            <strong style={{color:"rgba(138,141,168,0.8)"}}>Disclaimer:</strong> This site "Rewind Tariffs" is provided for general informational purposes only to assist importers of record in understanding their potential tariff refund eligibility. This tool does not constitute legal, tax, customs, or professional advice of any kind. Turnpage Digital Markets LLC is not a law firm, licensed customs broker, registered broker-dealer, or investment advisor, and is not acting as your attorney, customs broker, or advisor through the provision of this service. This tool is an analytical aid only — it does not prepare, generate, or transmit any documents intended for filing with U.S. Customs and Border Protection (CBP), nor does it transact customs business on your behalf within the meaning of 19 CFR § 111.1. All entry declarations, classifications, valuations, duty calculations, and payments remain the sole responsibility of the importer of record pursuant to 19 CFR § 141.1. Importers are encouraged to consult with a licensed customs broker or qualified trade attorney for specific customs determinations. Turnpage Digital Markets LLC expressly disclaims any and all liability arising from or related to your use of this tool.
+            <strong style={{color:"rgba(138,141,168,0.8)"}}>{c.E("disclaimer_label")}:</strong> {c.E("disclaimer_text")}
           </div>
         </div>
       </div>
@@ -2322,9 +2420,9 @@ function AboutPage({ onNavigate }) {
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
       <style>{SHARED_MOBILE_CSS}</style>
       <style>{`
-        .why-card{background:#fff;border-radius:16px;padding:28px 24px;border:1px solid ${B};box-shadow:0 1px 3px rgba(0,0,0,0.03);transition:all 0.3s cubic-bezier(.4,0,.2,1);cursor:default}
-        .why-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,0.1);border-color:${ACC}30}
-        .why-card .why-icon{width:44px;height:44px;border-radius:12px;background:${D};display:flex;align-items:center;justify-content:center;margin-bottom:18px;transition:background 0.3s ease}
+        .why-card{background:#fff;border-radius:0;clip-path:polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);padding:28px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.03);transition:all 0.3s cubic-bezier(.4,0,.2,1);cursor:default}
+        .why-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,0.1)}
+        .why-card .why-icon{width:44px;height:44px;border-radius:0;clip-path:polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);background:${D};display:flex;align-items:center;justify-content:center;margin-bottom:18px;transition:background 0.3s ease}
         .why-card:hover .why-icon{background:${ACC}}
       `}</style>
       <NavBar onNavigate={onNavigate} current="about"/>
@@ -2333,63 +2431,102 @@ function AboutPage({ onNavigate }) {
       <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:800,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>{c("hero.label")}</div>
-          <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",lineHeight:1.15,marginBottom:16}}>{c("hero.headline")}</div>
-          <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,lineHeight:"1.7",maxWidth:640,margin:"0 auto"}}>{c("hero.description")}</div>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>{c.E("hero.label")}</div>
+          <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",lineHeight:1.15,marginBottom:16}}>{c.E("hero.headline")}</div>
+          <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,lineHeight:"1.7",maxWidth:640,margin:"0 auto"}}>{c.E("hero.description")}</div>
         </div>
       </div>
 
       {/* Mission / Story */}
       <div className="section-pad" style={{background:BG,padding:"80px 32px"}}>
         <div className="about-3col" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:40}}>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Ready to help</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Connected to top trade experts</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>We work with a network of customs brokers, trade attorneys, and refund specialists who handle IEEPA claims every day.</div>
-          </div>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Ready to fund</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Backed by smart capital</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>Our capital partners understand your business needs and are prepared to move fast to purchase your refund receivables. If you prefer to cash out rather than wait, we offer highly competitive rates.</div>
-          </div>
-          <div>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Proven impact</div>
-            <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16}}>Hundreds of millions recovered</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>Our team has recovered hundreds of millions of dollars for claimants in other complex proceedings including bankruptcies and class action cases.</div>
-          </div>
+          {[
+            {label:"Ready to help",title:"Connected to top trade experts",desc:"We work with a network of customs brokers, trade attorneys, and refund specialists who handle IEEPA claims every day."},
+            {label:"Ready to fund",title:"Backed by smart capital",desc:"Our capital partners understand your business needs and are prepared to move fast to purchase your refund receivables. If you prefer to cash out rather than wait, we offer highly competitive rates."},
+            {label:"Proven impact",title:"Hundreds of millions recovered",desc:"Our team has recovered hundreds of millions of dollars for claimants in other complex proceedings including bankruptcies and class action cases."},
+          ].map((c,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateRows:"auto 1fr auto"}}>
+              <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{c.label}</div>
+              <div style={{fontFamily:S,fontSize:28,fontWeight:700,color:D,marginBottom:16,alignSelf:"start"}}>{c.title}</div>
+              <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>{c.desc}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Why Choose Us — same cards as home page */}
-      <div className="section-pad" style={{background:"#f0efeb",padding:"80px 32px"}}>
+      {/* Brand Promises Band */}
+      <div style={{background:"#fff",padding:"48px 32px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:40,textAlign:"center"}} className="about-3col">
+          {[
+            {title:"Free eligibility assessment",sub:"No obligation, no hidden fees",icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
+            {title:"Response within 48 hours",sub:"Our team is on standby to help",icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>},
+            {title:"100% confidential",sub:"Your company data remains secure",icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>},
+          ].map((p,i)=>(
+            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+              <div style={{width:48,height:48,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",background:"rgba(242,86,80,0.1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:4}}>
+                {p.icon}
+              </div>
+              <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:D}}>{p.title}</div>
+              <div style={{fontFamily:F,fontSize:14,color:M}}>{p.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Social Proof */}
+      <div className="section-pad" style={{background:"#f0efeb",padding:"80px 32px 40px"}}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:48}}>
-            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>Why choose us</div>
-            <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",color:D,marginBottom:12}}>Your refund. Our guidance.</div>
-            <div style={{fontFamily:F,fontSize:16,color:M,maxWidth:600,margin:"0 auto",lineHeight:"1.6"}}>The Supreme Court ruled IEEPA tariffs unconstitutional — and every dollar you overpaid is recoverable. Here's why importers trust us to guide them through the process.</div>
+            <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D,marginBottom:12}}>Trusted by Importers</div>
+            <div style={{fontFamily:S,fontSize:"clamp(14px,1.5vw,18px)",fontWeight:400,color:M,marginBottom:0}}>Delivering unexpected value faster than the competition</div>
           </div>
-          <div className="grid-2col" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20}}>
+
+          {/* Testimonials */}
+          <div className="grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginBottom:48}}>
             {[
-              {icon:<Ic size={22} color="#fff"><path d="M3 17l4-8 4 5 3-3 7 6"/><path d="M21 21H3V3" strokeWidth="1.5"/></Ic>,title:"Comprehensive review",desc:"Most importers leave money on the table. We cross-reference every HTS code against the ruling to identify refund paths others miss."},
-              {icon:<IcShield size={22} color="#fff"/>,title:"100% free assessment",desc:"Our eligibility assessment is completely free with no obligation. We help you understand your refund potential before you engage counsel or a cash buyer."},
-              {icon:<Ic size={22} color="#fff"><circle cx="9" cy="7" r="3.5" strokeWidth="1.5"/><circle cx="16" cy="9" r="2.5" strokeWidth="1.5"/><path d="M2 21v-2a5 5 0 015-5h4a5 5 0 015 5v2"/><path d="M19.5 15.5a3.5 3.5 0 012.5 3.3V21"/></Ic>,title:"Connected to top trade counsel",desc:"We work with a network of customs experts, brokers and trade attorneys who know exactly how refund claims are reviewed and approved."},
-              {icon:<Ic size={22} color="#fff"><circle cx="12" cy="12" r="9.5" strokeWidth="1.5"/><path d="M12 2.5c-3 3-4.5 6-4.5 9.5s1.5 6.5 4.5 9.5c3-3 4.5-6 4.5-9.5S15 5.5 12 2.5z"/><path d="M2.5 12h19"/></Ic>,title:"Every port, every program",desc:"Reciprocal tariffs, fentanyl surcharges, de minimis — we assess eligibility across all IEEPA programs and every U.S. port of entry."},
-            ].map((c,i)=>(
-              <div key={i} className="why-card">
-                <div className="why-icon">{c.icon}</div>
-                <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:D,marginBottom:8}}>{c.title}</div>
-                <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.6"}}>{c.desc}</div>
+              {quote:"The Rewind team really knows their stuff. They walked us through the entire process, answered every question we had, and made it easy to understand our options. Genuinely great people to work with.",name:"Director of Supply Chain",company:"Mid-Market Consumer Electronics Importer"},
+              {quote:"We talked to a few firms before choosing Rewind. They were by far the most responsive and knowledgeable, and their pricing was more competitive than anyone else we spoke with.",name:"VP of Operations",company:"Industrial Components Distributor"},
+              {quote:"As a smaller importer, we weren't sure this was worth pursuing. Rewind made the whole thing simple, stayed on top of communication, and delivered pricing that made it a no-brainer.",name:"Owner",company:"Specialty Food Importer"},
+              {quote:"Super easy to work with from start to finish. The team is sharp, responsive, and clearly understands the tariff landscape inside and out. We'd recommend them to any importer.",name:"CFO",company:"Apparel & Accessories Brand"},
+            ].map((t,i)=>(
+              <div key={i} style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"28px 24px",display:"flex",flexDirection:"column",justifyContent:"space-between",gap:20,position:"relative"}}>
+                <div style={{position:"absolute",top:20,right:20,display:"flex",gap:2}}>
+                  {[...Array(5)].map((_,si)=><svg key={si} width="16" height="16" viewBox="0 0 24 24" fill={ACC} stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>)}
+                </div>
+                <div>
+                  <svg width="28" height="20" viewBox="0 0 28 20" fill="none" style={{marginBottom:12,opacity:0.15}}><path d="M0 20V10.9C0 3.6 4.2.4 12.6 0l1.1 3.3C8.4 4.2 6 6.6 6 10h5.4v10H0zm15.4 0V10.9C15.4 3.6 19.6.4 28 0l1.1 3.3c-5.3.9-7.7 3.3-7.7 6.7h5.4v10h-11.4z" fill={D}/></svg>
+                  <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.7",fontStyle:"italic"}}>{t.quote}</div>
+                </div>
+                <div>
+                  <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:D}}>{t.name}</div>
+                  <div style={{fontFamily:F,fontSize:13,color:M}}>{t.company}</div>
+                </div>
               </div>
             ))}
           </div>
+
+        </div>
+      </div>
+
+      {/* Referral Partner Band */}
+      <div style={{background:DARK,padding:"48px 32px"}}>
+        <div style={{maxWidth:800,margin:"0 auto",display:"flex",alignItems:"center",gap:32,flexWrap:"wrap",justifyContent:"center"}} className="about-3col">
+          <div style={{flex:1,minWidth:280}}>
+            <div style={{fontFamily:S,fontSize:"clamp(20px,2.5vw,26px)",fontWeight:800,color:"#fff",marginBottom:8}}>Are you a customs broker or trade advisor?</div>
+            <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.7"}}>Earn referral fees by connecting your clients to IEEPA tariff refund options. No overhead, no risk.</div>
+          </div>
+          <button onClick={()=>onNavigate("brokers")} onMouseEnter={e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.color=D;}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.12)";e.currentTarget.style.color="#fff";}} style={{padding:"14px 28px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:"rgba(255,255,255,0.12)",color:"#fff",fontFamily:F,fontSize:15,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",transition:"all 0.2s"}}>Learn about our partner program →</button>
         </div>
       </div>
 
       {/* CTA */}
-      <div style={{background:"#f0efeb",padding:"60px 32px",textAlign:"center"}}>
-        <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",color:D,marginBottom:16}}>{c("cta.headline")}</div>
-        <div style={{fontFamily:F,fontSize:15,color:M,maxWidth:500,margin:"0 auto 24px",lineHeight:"1.7"}}>{c("cta.description")}</div>
-        <button onClick={()=>onNavigate("home")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(255,107,90,0.25)"}}>{c("cta.button_text")}</button>
+      <div style={{background:"#f0efeb",padding:"20px 32px 60px",textAlign:"center"}}>
+        <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:D,marginBottom:16}}>{c.E("cta.headline")}</div>
+        <div style={{fontFamily:F,fontSize:15,color:M,maxWidth:500,margin:"0 auto 24px",lineHeight:"1.7"}}>{c.E("cta.description")}</div>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>onNavigate("contact")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:D,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer"}}>Contact us</button>
+          <button className="btn-acc" onClick={()=>onNavigate("home")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>{c.E("cta.button_text")}</button>
+        </div>
       </div>
 
       <Footer onNavigate={onNavigate}/>
@@ -2402,7 +2539,7 @@ function AboutPage({ onNavigate }) {
 ═══════════════════════════════════════════════════════ */
 function ContactPage({ onNavigate }) {
   const c = useEditableContent("contact");
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({_loadedAt: Date.now()});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(false);
@@ -2410,6 +2547,9 @@ function ContactPage({ onNavigate }) {
   const canSubmit = !!(form.name && form.email && form.message);
 
   const handleSubmit = async () => {
+    // Bot checks
+    if (form._hp) return;
+    if (Date.now() - form._loadedAt < 3000) return;
     setSubmitting(true); setSubmitError(false);
     try {
       await fetch(SHEET_URL, {
@@ -2428,8 +2568,8 @@ function ContactPage({ onNavigate }) {
           ior: "",
           registrantType: form.topic || "General inquiry",
           estDuties: "",
-          bondImpact: "",
-          bondAmount: "",
+          citFiled: "",
+          citCase: "",
           collateral: "",
           surety: "",
           dateRange: "",
@@ -2455,9 +2595,9 @@ function ContactPage({ onNavigate }) {
       <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:700,margin:"0 auto",textAlign:"center"}}>
-          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>{c("hero.label")}</div>
-          <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",lineHeight:1.15,marginBottom:16}}>{c("hero.headline")}</div>
-          <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,lineHeight:"1.7",maxWidth:560,margin:"0 auto"}}>{c("hero.description")}</div>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>{c.E("hero.label")}</div>
+          <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",lineHeight:1.15,marginBottom:16}}>{c.E("hero.headline")}</div>
+          <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,lineHeight:"1.7",maxWidth:560,margin:"0 auto"}}>{c.E("hero.description")}</div>
         </div>
       </div>
 
@@ -2466,8 +2606,8 @@ function ContactPage({ onNavigate }) {
         <div className="contact-2col" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1.2fr",gap:60,alignItems:"start"}}>
           {/* Left — info */}
           <div>
-            <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D,lineHeight:1.15,marginBottom:20}}>{c("info.headline")}</div>
-            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.7",marginBottom:36}}>{c("info.description")}</div>
+            <div style={{fontFamily:S,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,color:D,lineHeight:1.15,marginBottom:20}}>{c.E("info.headline")}</div>
+            <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.7",marginBottom:36}}>{c.E("info.description")}</div>
 
             {[
               [IcMail,"Email us","","For general inquiries and partnership requests"],
@@ -2480,7 +2620,7 @@ function ContactPage({ onNavigate }) {
                   <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:D}}>{t}</div>
                   {d&&<div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.5"}}>{d}</div>}
                   {sub&&<div style={{fontFamily:F,fontSize:12,color:M}}>{sub}</div>}
-                  {i===2&&<button onClick={()=>{onNavigate("home");setTimeout(()=>{const el=document.querySelector('[data-form]');el?.scrollIntoView({behavior:"smooth"});},300);}} style={{marginTop:8,padding:"10px 20px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer"}}>Start free assessment →</button>}
+                  {i===2&&<button className="btn-acc" onClick={()=>{onNavigate("home");setTimeout(()=>{const el=document.querySelector('[data-form]');el?.scrollIntoView({behavior:"smooth"});},300);}} style={{marginTop:8,padding:"10px 20px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer"}}>Start free assessment →</button>}
                 </div>
               </div>
             ))}
@@ -2498,6 +2638,8 @@ function ContactPage({ onNavigate }) {
               <>
                 <div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D,marginBottom:4}}>Send us a message</div>
                 <div style={{fontFamily:F,fontSize:13,color:M,marginBottom:20}}>Fields marked with <span style={{color:ACC}}>*</span> are required.</div>
+                {/* Honeypot — hidden from real users */}
+                <div style={{position:"absolute",left:"-9999px",opacity:0,height:0,overflow:"hidden"}} aria-hidden="true"><input tabIndex={-1} autoComplete="off" value={form._hp||""} onChange={e=>up({_hp:e.target.value})} name="website"/></div>
                 <div className="form-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
                   <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:6}}>Your name <span style={{color:ACC}}>*</span></label><input value={form.name||""} onChange={e=>up({name:e.target.value})} placeholder="" style={inputStyle}/></div>
                   <div><label style={{fontFamily:F,fontSize:12,fontWeight:600,color:D,display:"block",marginBottom:6}}>Company</label><input value={form.company||""} onChange={e=>up({company:e.target.value})} placeholder="" style={inputStyle}/></div>
@@ -2720,6 +2862,110 @@ function TermsPage({ onNavigate }) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════
+   FOR BROKERS PAGE
+═══════════════════════════════════════════════════════ */
+function BrokersPage({ onNavigate }) {
+  const c = useEditableContent("brokers");
+  return (
+    <div style={{minHeight:"100vh",fontFamily:F}}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+      <style>{SHARED_MOBILE_CSS}</style>
+      <NavBar onNavigate={onNavigate} current="brokers"/>
+
+      {/* Hero */}
+      <div className="subpage-hero" style={{background:DARK,padding:"60px 32px 72px",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,backgroundImage:`radial-gradient(${DARKBORDER} 1px, transparent 1px)`,backgroundSize:"40px 40px",opacity:0.3}}/>
+        <div style={{position:"relative",zIndex:1,maxWidth:800,margin:"0 auto",textAlign:"center"}}>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>{c.E("page_label")}</div>
+          <div style={{fontFamily:S,fontSize:"clamp(32px,4vw,48px)",fontWeight:800,color:"#fff",lineHeight:1.15,marginBottom:16}}>{c.E("page_title")}</div>
+          <div style={{fontFamily:F,fontSize:16,color:DARKMUTED,lineHeight:"1.7",maxWidth:600,margin:"0 auto"}}>{c.E("page_description")}</div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="section-pad" style={{background:BG,padding:"80px 32px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:48}}>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>HOW IT WORKS</div>
+            <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:D}}>Three steps to earning referral fees</div>
+          </div>
+          <div className="about-3col" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:40}}>
+            {[
+              {num:"1",title:c("step_1_title"),desc:c("step_1_desc")},
+              {num:"2",title:c("step_2_title"),desc:c("step_2_desc")},
+              {num:"3",title:c("step_3_title"),desc:c("step_3_desc")},
+            ].map((s,i)=>(
+              <div key={i} style={{display:"flex",flexDirection:"column",gap:12}}>
+                <div style={{width:48,height:48,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",background:D,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span style={{fontFamily:F,fontSize:20,fontWeight:800,color:"#fff"}}>{s.num}</span>
+                </div>
+                <div style={{fontFamily:S,fontSize:22,fontWeight:700,color:D}}>{s.title}</div>
+                <div style={{fontFamily:F,fontSize:15,color:M,lineHeight:"1.8"}}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Why partner with us */}
+      <div style={{background:"#fff",padding:"80px 32px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:48}}>
+            <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>WHY PARTNER WITH US</div>
+            <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:D}}>Built for trade professionals</div>
+          </div>
+          <div className="grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,maxWidth:900,margin:"0 auto"}}>
+            {[
+              {icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,title:c("benefit_1_title"),desc:c("benefit_1_desc")},
+              {icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ACC} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,title:c("benefit_2_title"),desc:c("benefit_2_desc")},
+            ].map((c,i)=>(
+              <div key={i} style={{background:BG,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"28px 24px",display:"flex",gap:16,alignItems:"flex-start"}}>
+                <div style={{width:48,height:48,flexShrink:0,clipPath:"polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)",background:"rgba(242,86,80,0.1)",display:"flex",alignItems:"center",justifyContent:"center"}}>{c.icon}</div>
+                <div>
+                  <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:D,marginBottom:6}}>{c.title}</div>
+                  <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.7"}}>{c.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Who should partner */}
+      <div style={{background:DARK,padding:"64px 32px"}}>
+        <div style={{maxWidth:800,margin:"0 auto",textAlign:"center"}}>
+          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:ACC,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>IDEAL PARTNERS</div>
+          <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:"#fff",marginBottom:32}}>Who we work with</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:24}} className="about-3col">
+            {[
+              {title:"Customs brokers",desc:"You already know which clients have IEEPA exposure. This is a natural extension of the service you provide."},
+              {title:"Trade attorneys",desc:"Refer clients who want immediate cash rather than waiting through the protest or litigation timeline."},
+              {title:"Freight forwarders & advisors",desc:"If your clients import goods subject to IEEPA tariffs, you can add value by connecting them to refund options."},
+            ].map((p,i)=>(
+              <div key={i} style={{background:DARKCARD,borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",padding:"24px 20px",textAlign:"left"}}>
+                <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:"#fff",marginBottom:8}}>{p.title}</div>
+                <div style={{fontFamily:F,fontSize:14,color:DARKMUTED,lineHeight:"1.7"}}>{p.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{background:BG,padding:"64px 32px",textAlign:"center"}}>
+        <div style={{fontFamily:S,fontSize:"clamp(24px,3vw,36px)",fontWeight:800,color:D,marginBottom:12}}>{c.E("cta_title")}</div>
+        <div style={{fontFamily:F,fontSize:15,color:M,maxWidth:500,margin:"0 auto 24px",lineHeight:"1.7"}}>{c.E("cta_description")}</div>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button className="btn-acc" onClick={()=>onNavigate("contact")} style={{padding:"14px 32px",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",border:"none",background:ACC,color:"#fff",fontFamily:F,fontSize:16,fontWeight:600,cursor:"pointer",boxShadow:"0 4px 24px rgba(242,86,80,0.25)"}}>{c.E("cta_button")} →</button>
+        </div>
+      </div>
+
+      <Footer onNavigate={onNavigate}/>
+    </div>
+  );
+}
+
 /* ─── Unsubscribe Page ─── */
 function UnsubscribePage({ onNavigate }) {
   const [status, setStatus] = useState("loading"); // loading | success | error
@@ -2730,7 +2976,9 @@ function UnsubscribePage({ onNavigate }) {
     const tokenMatch = hash.match(/token=([^&]+)/);
     if (!tokenMatch) { setStatus("error"); return; }
     try {
-      const decoded = atob(tokenMatch[1]);
+      const raw = decodeURIComponent(tokenMatch[1]);
+      // Support signed tokens (base64:hmac) and legacy plain base64
+      const decoded = atob(raw.includes(":") ? raw.split(":")[0] : raw);
       setEmail(decoded);
       // Call unsubscribe RPC
       if (supabase) {
@@ -2776,7 +3024,7 @@ function UnsubscribePage({ onNavigate }) {
   );
 }
 
-export default function App() {
+function AppRouter() {
   const [page, setPage] = useState(hashToPage());
 
   useEffect(()=>{
@@ -2797,8 +3045,18 @@ export default function App() {
   if(page==="data-guide") return <DataGuidePage onNavigate={navigate}/>;
   if(page==="about") return <AboutPage onNavigate={navigate}/>;
   if(page==="contact") return <ContactPage onNavigate={navigate}/>;
+  if(page==="brokers") return <BrokersPage onNavigate={navigate}/>;
   if(page==="privacy") return <PrivacyPage onNavigate={navigate}/>;
   if(page==="terms") return <TermsPage onNavigate={navigate}/>;
   if(page==="unsubscribe") return <UnsubscribePage onNavigate={navigate}/>;
   return <LandingPage onNavigate={navigate}/>;
+}
+
+export default function App() {
+  return (
+    <EditModeProvider>
+      <AppRouter/>
+      <EditModeToolbar/>
+    </EditModeProvider>
+  );
 }
