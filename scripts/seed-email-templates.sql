@@ -305,6 +305,49 @@ VALUES (
 ON CONFLICT (name) DO NOTHING;
 
 
+-- ─── 8. SUBMISSION CONFIRMATION (sent immediately after final submit) ───
+
+INSERT INTO email_templates (name, subject, html_body, text_body)
+VALUES (
+  'Submission Confirmation',
+  'Your assessment is submitted — we''ll be in touch within 48 hours',
+  E'<div style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e">\n'
+  || E'<div style="background:#0c0e1a;padding:28px 24px;text-align:center">\n'
+  || E'<img src="https://rewindtariffs.com/logo-full.png" alt="Rewind Tariffs" style="height:30px" />\n'
+  || E'</div>\n'
+  || E'<div style="padding:32px 24px 24px">\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 16px">Hi {{first_name}},</p>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 16px">Thank you for completing your assessment. We have everything we need to get started.</p>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 16px"><strong>A member of our team will reach out to you within 48 hours</strong> to discuss your tariff refund eligibility and walk you through the next steps.</p>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 16px">In the meantime, feel free to:</p>\n'
+  || E'<ul style="font-size:16px;line-height:1.8;padding-left:20px;margin:0 0 16px">\n'
+  || E'<li>Visit our <a href="https://rewindtariffs.com/#research" style="color:#f25650">News & Research</a> page for the latest updates</li>\n'
+  || E'<li>Review the <a href="https://rewindtariffs.com/#calculator" style="color:#f25650">IEEPA Duty Calculator</a> for estimated refund amounts</li>\n'
+  || E'<li>Reply to this email if you have any questions</li>\n'
+  || E'</ul>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 24px">We appreciate your trust in Rewind Tariffs and look forward to helping you recover what''s owed.</p>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 4px">Best,</p>\n'
+  || E'<p style="font-size:16px;line-height:1.6;margin:0 0 24px;font-weight:600">The Rewind Tariffs Team</p>\n'
+  || E'</div>\n'
+  || E'<div style="padding:16px 24px;border-top:1px solid #e8e6e1;font-size:12px;color:#8a8780;text-align:center">\n'
+  || E'<a href="https://rewindtariffs.com" style="color:#8a8780">rewindtariffs.com</a> · <a href="{{unsubscribe_link}}" style="color:#8a8780">Unsubscribe</a>\n'
+  || E'</div>\n'
+  || E'</div>',
+
+  E'Hi {{first_name}},\n\n'
+  || E'Thank you for completing your assessment. We have everything we need to get started.\n\n'
+  || E'A member of our team will reach out to you within 48 hours to discuss your tariff refund eligibility and walk you through the next steps.\n\n'
+  || E'In the meantime, feel free to:\n'
+  || E'- Visit our News & Research page: https://rewindtariffs.com/#research\n'
+  || E'- Review the IEEPA Duty Calculator: https://rewindtariffs.com/#calculator\n'
+  || E'- Reply to this email if you have any questions\n\n'
+  || E'We appreciate your trust in Rewind Tariffs and look forward to helping you recover what''s owed.\n\n'
+  || E'Best,\nThe Rewind Tariffs Team\n\n'
+  || E'---\nrewindtariffs.com\nUnsubscribe: {{unsubscribe_link}}'
+)
+ON CONFLICT (name) DO NOTHING;
+
+
 -- ════════════════════════════════════════════════════════════
 -- Welcome Drip Sequence (5 steps)
 -- ════════════════════════════════════════════════════════════
@@ -321,39 +364,39 @@ VALUES (
 ON CONFLICT (name) DO NOTHING;
 
 
--- Wire up the sequence steps (delay_hours is from the PREVIOUS step)
--- Step 1: Welcome             → sent immediately (0h)
--- Step 2: Deadline Awareness   → sent 48h later
--- Step 3: Refund Pathways      → sent 72h after step 2 (day 5)
--- Step 4: Cash Advance Option  → sent 120h after step 3 (day 10)
--- Step 5: Final Follow-Up      → sent 264h after step 4 (day 21)
+-- Wire up the sequence steps (delay_minutes is from the PREVIOUS step)
+-- Step 1: Welcome             → sent immediately (0 min)
+-- Step 2: Deadline Awareness   → sent 48h (2880 min) later
+-- Step 3: Refund Pathways      → sent 72h (4320 min) after step 2 (day 5)
+-- Step 4: Cash Advance Option  → sent 120h (7200 min) after step 3 (day 10)
+-- Step 5: Final Follow-Up      → sent 264h (15840 min) after step 4 (day 21)
 
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_hours)
+INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
 SELECT s.id, t.id, 1, 0
 FROM email_sequences s, email_templates t
 WHERE s.name = 'Welcome' AND t.name = 'Welcome'
 ON CONFLICT (sequence_id, step_order) DO NOTHING;
 
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_hours)
-SELECT s.id, t.id, 2, 48
+INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
+SELECT s.id, t.id, 2, 2880
 FROM email_sequences s, email_templates t
 WHERE s.name = 'Welcome' AND t.name = 'Deadline Awareness'
 ON CONFLICT (sequence_id, step_order) DO NOTHING;
 
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_hours)
-SELECT s.id, t.id, 3, 72
+INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
+SELECT s.id, t.id, 3, 4320
 FROM email_sequences s, email_templates t
 WHERE s.name = 'Welcome' AND t.name = 'Refund Pathways'
 ON CONFLICT (sequence_id, step_order) DO NOTHING;
 
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_hours)
-SELECT s.id, t.id, 4, 120
+INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
+SELECT s.id, t.id, 4, 7200
 FROM email_sequences s, email_templates t
 WHERE s.name = 'Welcome' AND t.name = 'Cash Advance Option'
 ON CONFLICT (sequence_id, step_order) DO NOTHING;
 
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_hours)
-SELECT s.id, t.id, 5, 264
+INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
+SELECT s.id, t.id, 5, 15840
 FROM email_sequences s, email_templates t
 WHERE s.name = 'Welcome' AND t.name = 'Final Follow-Up'
 ON CONFLICT (sequence_id, step_order) DO NOTHING;

@@ -36,12 +36,15 @@ export function EditModeProvider({ children }) {
 
   // Check if logged-in user is admin
   useEffect(() => {
+    console.log("[EditMode] supabase exists:", !!supabase);
     if (!supabase) { setAuthLoading(false); return; }
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[EditMode] session:", session?.user?.email, "isAdmin:", session?.user?.email === ADMIN_EMAIL);
       setIsAdmin(session?.user?.email === ADMIN_EMAIL);
       setAuthLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_ev, s) => {
+      console.log("[EditMode] authStateChange:", s?.user?.email);
       setIsAdmin(s?.user?.email === ADMIN_EMAIL);
       setAuthLoading(false);
     });
@@ -69,10 +72,11 @@ export function EditModeProvider({ children }) {
     try {
       const upserts = Object.entries(pendingChanges).map(([fullKey, value]) => {
         // fullKey = "home.hero.headline" → page=home, section=hero, field_key=headline
+        // fullKey = "footer.copyright" → page=footer, section="", field_key=copyright
         const parts = fullKey.split(".");
         const page = parts[0];
-        const section = parts[1];
-        const field_key = parts.slice(2).join(".");
+        const section = parts.length > 2 ? parts[1] : "";
+        const field_key = parts.length > 2 ? parts.slice(2).join(".") : parts[1];
         return {
           page,
           section,
@@ -143,7 +147,8 @@ export function useEditableContent(page) {
 
         const obj = {};
         data.forEach((row) => {
-          obj[`${row.section}.${row.field_key}`] = row.field_value;
+          const key = row.section ? `${row.section}.${row.field_key}` : row.field_key;
+          obj[key] = row.field_value;
         });
 
         setContent(obj);

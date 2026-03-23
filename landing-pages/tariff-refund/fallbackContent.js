@@ -9,9 +9,15 @@ export const FALLBACK = {
   // HOME PAGE
   // ═════════════════════════════════════════════════════════════════
 
-  // ─── HOME: Hero (hardcoded in JSX — these fallback values are not currently used) ───
+  // ─── HOME: Hero ───
+  "home.hero.badge": "Now accepting submissions",
   "home.hero.headline": "Get your tariff refunds back.",
   "home.hero.subheading": "On Feb. 20, 2026, the Supreme Court struck down all IEEPA tariffs 6–3. We help you understand your options and connect you with qualified counsel or a cash buyer.",
+  "home.hero.cta_button": "Check your eligibility",
+  "home.hero.badge_1_title": "Free assessment",
+  "home.hero.badge_1_desc": "No obligation, no hidden fees",
+  "home.hero.badge_2_title": "Don't wait",
+  "home.hero.badge_2_desc": "180-day protest windows expiring",
 
   // ─── HOME: Form Intro ───
   "home.form_intro.label": "Get started",
@@ -222,16 +228,17 @@ export const FALLBACK = {
   "nav.link_research": "News & Research",
   "nav.link_brokers": "For Brokers",
   "nav.link_about": "About Us",
+  "nav.link_contact": "Contact",
   "nav.button_get_started": "Get started",
 
   // ═════════════════════════════════════════════════════════════════
   // FOOTER
   // ═════════════════════════════════════════════════════════════════
-  "footer.copyright": "© 2026 Rewind Tariffs",
-  "footer.disclaimer_label": "Disclaimer",
-  "footer.disclaimer_text": "Rewind Tariffs is an informational platform, not a law firm. We do not provide legal, tax, or professional advice. Consult with qualified trade attorneys and customs brokers before filing claims.",
-  "footer.link_privacy": "Privacy Policy",
-  "footer.link_terms": "Terms of Use",
+  "footer.footer.copyright": "© 2026 Rewind Tariffs",
+  "footer.footer.disclaimer_label": "Disclaimer",
+  "footer.footer.disclaimer_text": "Rewind Tariffs is an informational platform, not a law firm. We do not provide legal, tax, or professional advice. Consult with qualified trade attorneys and customs brokers before filing claims.",
+  "footer.footer.link_privacy": "Privacy Policy",
+  "footer.footer.link_terms": "Terms of Use",
 
   // ═════════════════════════════════════════════════════════════════
   // CALCULATOR PAGE

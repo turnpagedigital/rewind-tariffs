@@ -47,6 +47,17 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
   return result;
 }
 
+async function signUnsubscribeToken(email: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(email));
+  const hex = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
+  // token = base64(email):hmac_hex
+  return `${btoa(email)}:${hex}`;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -57,6 +68,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendKey = Deno.env.get("RESEND_API_KEY");
+    const unsubSecret = Deno.env.get("UNSUBSCRIBE_SECRET") || supabaseKey; // fallback to service key
     const fromEmail = Deno.env.get("FROM_EMAIL") || "Rewind Tariffs <noreply@rewindtariffs.com>";
     const batchSize = parseInt(Deno.env.get("BATCH_SIZE") || "50", 10);
 
@@ -115,7 +127,8 @@ Deno.serve(async (req) => {
       }
 
       // Build template variables
-      const unsubscribeLink = `https://rewindtariffs.com/#unsubscribe?token=${btoa(lead.email)}`;
+      const unsubToken = await signUnsubscribeToken(lead.email, unsubSecret);
+      const unsubscribeLink = `https://rewindtariffs.com/#unsubscribe?token=${encodeURIComponent(unsubToken)}`;
       const vars: Record<string, string> = {
         first_name: lead.first_name || "",
         last_name: lead.last_name || "",

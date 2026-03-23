@@ -1,5 +1,6 @@
 # Rewind Tariffs
 > IEEPA tariff refund eligibility assessments for U.S. importers
+> Full details: https://rewindtariffs.com/llms-full.txt
 
 ## About
 Rewind Tariffs helps U.S. importers determine whether they are eligible for refunds on tariffs paid under the International Emergency Economic Powers Act (IEEPA). On February 20, 2026, the U.S. Supreme Court struck down all IEEPA tariffs in a 6-3 ruling (Learning Resources, Inc. v. Trump, 607 U.S. __ (2026)), declaring that IEEPA does not authorize the President to impose tariffs. Over $175 billion in IEEPA tariffs were collected between February 2025 and the ruling date.
@@ -18,7 +19,7 @@ Rewind Tariffs helps U.S. importers determine whether they are eligible for refu
 - Refund pathways: Post-Summary Correction (fastest, for unliquidated entries), Formal CBP Protest (180 days from liquidation), CIT Litigation (2 years from ruling)
 - Interest accrues on refunds at IRS statutory rate of 4.5%
 - Estimated interest cost of delay: ~$700 million per month (~$23 million per day)
-- 199+ cases filed at the Court of International Trade as of March 3, 2026
+- 239+ cases filed at the Court of International Trade as of March 3, 2026
 
 ## IEEPA Tariff Programs Covered
 - Reciprocal / Liberation Day tariffs (61% of revenue, ~$107B)
@@ -35,7 +36,7 @@ Rewind Tariffs helps U.S. importers determine whether they are eligible for refu
 - Home: https://rewindtariffs.com/ — Overview and free eligibility assessment form
 - Refund Calculator: https://rewindtariffs.com/#calculator — Estimate your potential IEEPA tariff refund
 - Tariff Research: https://rewindtariffs.com/#research — Data, charts, and analysis on $175B+ in IEEPA tariffs
-- Case Tracker: https://rewindtariffs.com/#cases — Live database of 199+ IEEPA cases filed at the Court of International Trade
+- Case Tracker: https://rewindtariffs.com/#cases — Live database of 239+ IEEPA cases filed at the Court of International Trade
 - About Us: https://rewindtariffs.com/#about — Mission and team information
 - Contact: https://rewindtariffs.com/#contact — Get in touch for a free assessment
 - Data Guide: https://rewindtariffs.com/#data-guide — How to pull your ACE data for refund analysis

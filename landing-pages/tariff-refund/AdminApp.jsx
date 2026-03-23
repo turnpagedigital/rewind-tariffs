@@ -1467,7 +1467,8 @@ function AdminPanel({ session }) {
       .eq("page", page);
     const obj = {};
     (rows || []).forEach((r) => {
-      obj[`${r.section}.${r.field_key}`] = r.field_value;
+      const key = r.section ? `${r.section}.${r.field_key}` : r.field_key;
+      obj[key] = r.field_value;
     });
     setData(obj);
     setLoadingData(false);

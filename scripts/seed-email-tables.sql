@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS email_sequence_steps (
   sequence_id uuid NOT NULL REFERENCES email_sequences(id) ON DELETE CASCADE,
   template_id uuid NOT NULL REFERENCES email_templates(id) ON DELETE RESTRICT,
   step_order integer NOT NULL,
-  delay_hours integer DEFAULT 0,
+  delay_minutes integer DEFAULT 0,
   created_at timestamptz DEFAULT now(),
   UNIQUE(sequence_id, step_order)
 );
@@ -131,7 +131,7 @@ DECLARE
   v_lead_id uuid;
   v_sequence_id uuid;
   v_step RECORD;
-  v_cumulative_hours integer := 0;
+  v_cumulative_minutes integer := 0;
   v_enrolled integer := 0;
 BEGIN
   -- Find the lead
@@ -161,12 +161,12 @@ BEGIN
 
   -- Enroll: insert queue entries for each step
   FOR v_step IN
-    SELECT template_id, step_order, delay_hours
+    SELECT template_id, step_order, delay_minutes
     FROM email_sequence_steps
     WHERE sequence_id = v_sequence_id
     ORDER BY step_order ASC
   LOOP
-    v_cumulative_hours := v_cumulative_hours + v_step.delay_hours;
+    v_cumulative_minutes := v_cumulative_minutes + v_step.delay_minutes;
 
     INSERT INTO email_send_queue (lead_id, template_id, sequence_id, step_order, scheduled_for, status)
     VALUES (
@@ -174,7 +174,7 @@ BEGIN
       v_step.template_id,
       v_sequence_id,
       v_step.step_order,
-      now() + (v_cumulative_hours || ' hours')::interval,
+      now() + (v_cumulative_minutes || ' minutes')::interval,
       'pending'
     );
 
