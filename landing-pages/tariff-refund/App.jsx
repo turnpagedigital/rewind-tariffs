@@ -1135,6 +1135,7 @@ const TARIFF_TIMELINE = [
   {date:"Mar 6, 2026",event:"CBP tells CIT it cannot immediately comply; proposes 45-day automated refund system (CAPE)",tag:"Legal"},
   {date:"Mar 10, 2026",event:"CIT accepts CBP's seven-step IEEPA tariff refund process",tag:"Legal"},
   {date:"Mar 12, 2026",event:"CBP filing reveals CAPE system progress: Claim Portal 70%, Mass Processing 40%, Review 80%, Refund 60% complete",tag:"Data"},
+  {date:"Mar 19, 2026",event:"CBP court filing: CAPE refund system 45–80% complete across components; full deployment targeted ~April 2026. Only ~21,000 of 330,000+ importers have completed ACH enrollment required to receive refunds. Next checkpoint: CIT status conference March 31.",tag:"Data"},
 ];
 
 const EFF_RATES = [
@@ -1584,8 +1585,11 @@ function CalculatorPage({ onNavigate }) {
           <div className="card-section" style={{background:"#fff",borderRadius:0,clipPath:"polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)",boxShadow:"0 1px 3px rgba(0,0,0,0.04),0 8px 30px rgba(0,0,0,0.06)",padding:"36px 32px",marginTop:24}}>
             <div style={{fontFamily:F,fontSize:20,fontWeight:700,color:D,marginBottom:4}}>Refund Paths by Entry Type</div>
             <div style={{fontFamily:F,fontSize:14,color:M,lineHeight:"1.6",marginBottom:8}}>Each path corresponds to a different entry status. Most importers with entries spanning multiple months will have a mix of unliquidated, recently liquidated, and older liquidated entries — meaning you may need to pursue more than one path simultaneously.</div>
-            <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:"1.6",marginBottom:24,background:"#f0f4ff",borderRadius:8,padding:"12px 16px",border:"1px solid #c4d5f0"}}>
+            <div style={{fontFamily:F,fontSize:13,color:D,lineHeight:"1.6",marginBottom:12,background:"#f0f4ff",borderRadius:8,padding:"12px 16px",border:"1px solid #c4d5f0"}}>
               <strong>Following the March 4 CIT order in <em>Atmus Filtration</em>:</strong> Judge Eaton directed CBP to automatically process refunds on unliquidated and non-final liquidated entries for all importers. However, the government is expected to appeal and seek a stay. Until the order is final, importers should still file protests on liquidated entries within 180 days to preserve their rights.
+            </div>
+            <div style={{fontFamily:F,fontSize:13,color:"#92400e",lineHeight:"1.6",marginBottom:24,background:"#fffbeb",borderRadius:8,padding:"12px 16px",border:"1px solid #fcd34d"}}>
+              <strong>ACH enrollment required for CAPE refunds:</strong> CBP's automated CAPE refund system requires ACH electronic payment enrollment. Only ~21,000 of 330,000+ importers have enrolled. If you are not enrolled, <a href="https://ace.cbp.dhs.gov/" target="_blank" rel="noopener noreferrer" style={{color:"#92400e",fontWeight:600,textDecoration:"underline",textUnderlineOffset:2}}>log in to ACE</a> and complete enrollment now. Additionally, the government is expected to appeal the universal scope of the Refund Order — filing an individual 28 U.S.C. §1581(i) CIT action preserves your rights regardless of how that appeal resolves.
             </div>
 
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
@@ -2137,6 +2141,19 @@ function CaseTrackerPage({ onNavigate }) {
       .catch(() => {});
   }, []);
 
+  const exportCSV = () => {
+    const headers = ["Case Number","Title","Filed Date","Status","Flags","Category","Judge","Presider","Product","Plaintiff","Attorney","Law Firm","Email","Phone","Address"];
+    const escape = v => { const s = String(v||""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"'+s.replace(/"/g,'""')+'"' : s; };
+    const rows = sorted.map(r => [r.caseNumber,r.title,r.filedDate,r.status,r.flags,r.category,r.judge,r.presider,r.product,r.plaintiff,r.attorney,r.lawFirm,r.email,r.phone,r.address].map(escape).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "cit-ieepa-cases-"+new Date().toISOString().slice(0,10)+".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const filtered = cases.filter(c => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (!search) return true;
@@ -2144,7 +2161,10 @@ function CaseTrackerPage({ onNavigate }) {
     return (c.title || "").toLowerCase().includes(q) ||
            (c.caseNumber || "").toLowerCase().includes(q) ||
            (c.product || "").toLowerCase().includes(q) ||
-           (c.presider || "").toLowerCase().includes(q);
+           (c.presider || "").toLowerCase().includes(q) ||
+           (c.attorney || "").toLowerCase().includes(q) ||
+           (c.lawFirm || "").toLowerCase().includes(q) ||
+           (c.plaintiff || "").toLowerCase().includes(q);
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -2245,7 +2265,7 @@ function CaseTrackerPage({ onNavigate }) {
                   style={{width:"100%",padding:"10px 14px 10px 36px",borderRadius:10,border:"1.5px solid "+B,fontFamily:F,fontSize:14,color:D,background:"#faf9f6"}}
                 />
               </div>
-              <div style={{display:"flex",gap:8}}>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
                 {[["all"],["Stayed"],["Filed"],["Remand"]].map(([val])=>{
                   const filterColors={all:ACC,Stayed:"#f59e0b",Filed:"#60a5fa",Remand:"#a78bfa"};
                   const fc=filterColors[val];
@@ -2253,6 +2273,10 @@ function CaseTrackerPage({ onNavigate }) {
                   const filterKey=val.toLowerCase();
                   return <button key={val} onClick={()=>{setStatusFilter(val);setPage(0);}} style={{padding:"8px 16px",borderRadius:8,border:active?`1.5px solid ${fc}`:"1.5px solid "+B,background:active?fc+"18":"#fff",color:active?fc:M,fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer"}}>{c.E("filter_"+filterKey)}</button>;
                 })}
+                <button onClick={exportCSV} style={{padding:"8px 16px",borderRadius:8,border:"1.5px solid "+B,background:"#fff",color:D,fontFamily:F,fontSize:13,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,marginLeft:4}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export CSV
+                </button>
               </div>
             </div>
           </div>

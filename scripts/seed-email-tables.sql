@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS email_sequences (
   name text NOT NULL UNIQUE,
   description text DEFAULT '',
   enabled boolean DEFAULT true,
+  trigger_type text DEFAULT 'manual' CHECK (trigger_type IN ('event', 'manual', 'inactivity')),
+  trigger_config jsonb DEFAULT '{}'::jsonb,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );

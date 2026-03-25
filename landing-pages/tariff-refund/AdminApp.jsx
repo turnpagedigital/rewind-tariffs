@@ -1053,7 +1053,7 @@ function SequenceBuilder() {
 
   const startEdit = (seq) => {
     setEditing(seq.id);
-    setForm({ name: seq.name, description: seq.description || "", enabled: seq.enabled });
+    setForm({ name: seq.name, description: seq.description || "", enabled: seq.enabled, trigger_type: seq.trigger_type || "manual", trigger_config: seq.trigger_config || {} });
     const sorted = (seq.email_sequence_steps || []).sort((a, b) => a.step_order - b.step_order);
     setSteps(sorted.map((s) => {
       const totalMin = s.delay_minutes ?? (s.delay_hours || 0) * 60;
@@ -1064,7 +1064,7 @@ function SequenceBuilder() {
 
   const startNew = () => {
     setEditing("new");
-    setForm({ name: "", description: "", enabled: true });
+    setForm({ name: "", description: "", enabled: true, trigger_type: "manual", trigger_config: {} });
     setSteps([]);
     setMsg("");
   };
@@ -1092,12 +1092,13 @@ function SequenceBuilder() {
     setSaving(true);
     let seqId = editing;
 
+    const payload = { name: form.name, description: form.description, enabled: form.enabled, trigger_type: form.trigger_type, trigger_config: form.trigger_config };
     if (editing === "new") {
-      const { data, error } = await supabase.from("email_sequences").insert([form]).select("id").single();
+      const { data, error } = await supabase.from("email_sequences").insert([payload]).select("id").single();
       if (error) { setMsg("Error: " + error.message); setSaving(false); return; }
       seqId = data.id;
     } else {
-      const { error } = await supabase.from("email_sequences").update({ ...form, updated_at: new Date().toISOString() }).eq("id", seqId);
+      const { error } = await supabase.from("email_sequences").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", seqId);
       if (error) { setMsg("Error: " + error.message); setSaving(false); return; }
       // Delete old steps
       await supabase.from("email_sequence_steps").delete().eq("sequence_id", seqId);
@@ -1153,6 +1154,34 @@ function SequenceBuilder() {
           <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional description" style={inputStyle} />
         </div>
 
+        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>Trigger</label>
+            <select value={form.trigger_type} onChange={(e) => setForm({ ...form, trigger_type: e.target.value, trigger_config: {} })} style={inputStyle}>
+              <option value="manual">Manual (admin-triggered)</option>
+              <option value="event">Event (user action)</option>
+              <option value="inactivity">Inactivity (no activity for N days)</option>
+            </select>
+          </div>
+          {form.trigger_type === "event" && (
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Event</label>
+              <select value={form.trigger_config.event || ""} onChange={(e) => setForm({ ...form, trigger_config: { event: e.target.value } })} style={inputStyle}>
+                <option value="">Select an event...</option>
+                <option value="form_submit">Form submitted</option>
+                <option value="onboarding_complete">Onboarding complete</option>
+                <option value="referral_sent">Referral sent</option>
+              </select>
+            </div>
+          )}
+          {form.trigger_type === "inactivity" && (
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Days inactive</label>
+              <input type="number" min="1" value={form.trigger_config.days_inactive || ""} onChange={(e) => setForm({ ...form, trigger_config: { days_inactive: parseInt(e.target.value) || "" } })} placeholder="e.g. 30" style={inputStyle} />
+            </div>
+          )}
+        </div>
+
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <label style={{ ...labelStyle, marginBottom: 0 }}>Steps</label>
@@ -1204,6 +1233,9 @@ function SequenceBuilder() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: D }}>{seq.name}</span>
                 <span style={badgeStyle(seq.enabled ? GREEN : M)}>{seq.enabled ? "Active" : "Paused"}</span>
+                <span style={badgeStyle(seq.trigger_type === "event" ? BLUE : seq.trigger_type === "inactivity" ? "#d97706" : M)}>
+                  {seq.trigger_type === "event" ? `On: ${(seq.trigger_config || {}).event || "event"}` : seq.trigger_type === "inactivity" ? `${(seq.trigger_config || {}).days_inactive || "?"}d inactive` : "Manual"}
+                </span>
               </div>
               <div style={{ fontSize: 12, color: M, marginTop: 2 }}>
                 {(seq.email_sequence_steps || []).length} step{(seq.email_sequence_steps || []).length !== 1 ? "s" : ""}

@@ -10,7 +10,7 @@ export const FALLBACK = {
   // ═════════════════════════════════════════════════════════════════
 
   // ─── HOME: Hero ───
-  "home.hero.badge": "Now accepting submissions",
+  "home.hero.badge": "Now Trading",
   "home.hero.headline": "Get your tariff refunds back.",
   "home.hero.subheading": "On Feb. 20, 2026, the Supreme Court struck down all IEEPA tariffs 6–3. We help you understand your options and connect you with qualified counsel or a cash buyer.",
   "home.hero.cta_button": "Check your eligibility",
@@ -201,7 +201,7 @@ export const FALLBACK = {
   "home.faq.q_2": "How can I tell if my company qualifies for a refund?",
   "home.faq.a_2": "If your business paid any IEEPA-related duties on imports into the U.S., you likely have a claim worth exploring. Trade professionals can review your ACE data to pinpoint which entries involved IEEPA tariffs. The refund path — whether through CBP protests, post-summary corrections, CIT litigation, or eventual automatic refunds — is still being shaped. Filing a protective protest before the deadline is the safest move to preserve your rights.",
   "home.faq.q_3": "What are the possible refund mechanisms?",
-  "home.faq.a_3": "Several options are on the table: CBP protests requesting full reversal of IEEPA duties, post-summary corrections through ACE, litigation at the Court of International Trade, or some combination. There's also a possibility of automatic refunds, though that hasn't been confirmed. Trade professionals generally recommend filing protests before your deadlines expire and considering a CIT case to keep all avenues open.",
+  "home.faq.a_3": "Several paths exist: (1) CBP's CAPE system — an automated refund process being built in ACE, targeted for ~April 2026. To receive refunds through CAPE, importers must have an active ACE account and must enroll in ACH electronic payment; only ~21,000 of 330,000+ importers have done so. (2) CBP protests under 19 U.S.C. §1514 for liquidated entries within the 180-day window. (3) CIT litigation under 28 U.S.C. §1581(i) — increasingly important because the government is expected to appeal the universal scope of the March 4 Refund Order to the Federal Circuit, which could limit who receives automatic CAPE refunds. (4) Post-summary corrections for unliquidated entries. Trade professionals recommend enrolling in ACH now, filing protests before your deadlines expire, and considering an individual CIT filing to preserve your rights regardless of how the appeal plays out.",
   "home.faq.q_4": "When do I need to act by?",
   "home.faq.a_4": "The key deadline is the 180-day protest window, which starts from the date each entry is liquidated. Because different entries liquidate at different times, your deadlines are staggered — some may be approaching sooner than you think. Getting started early gives your counsel time to monitor liquidation dates and file before windows close.",
   "home.faq.q_5": "What steps can importers take right now?",
@@ -218,6 +218,10 @@ export const FALLBACK = {
   "home.faq.a_10": "No — we're an informational platform, not a law firm or customs broker. We help you understand your eligibility and options, but we don't file documents with CBP or provide legal, tax, or professional advice. When you're ready to take action, we connect you with licensed trade attorneys and brokers who handle the filings directly.",
   "home.faq.q_11": "What happens if no refund comes through?",
   "home.faq.a_11": "Fee arrangements are between you and the counsel or professionals you engage. Many trade attorneys offer contingency-based pricing, meaning you only pay if money is actually recovered. We'd encourage you to discuss fee structures upfront with any professional we refer you to.",
+  "home.faq.q_12": "Will I automatically receive a refund through CAPE, or do I need to take action?",
+  "home.faq.a_12": "Refunds through CBP's CAPE system are not automatic for most importers. To receive a refund, you must meet three prerequisites: (1) be covered by a CIT order (either as a direct litigant or under the March 4 universal Refund Order — though the government is expected to appeal that order's universal scope), (2) have an active ACE account, and (3) be enrolled in ACH electronic payment. As of mid-March 2026, only about 21,000 of the 330,000+ importers who paid IEEPA duties have completed ACH enrollment. If you haven't enrolled, you should do so immediately through the ACE portal. We can help you navigate the process.",
+  "home.faq.q_13": "What happens to my refund rights if the government appeals the universal Refund Order?",
+  "home.faq.a_13": "The government is widely expected to appeal the March 4 CIT order that directed CBP to refund duties to all importers of record — not just those who filed lawsuits. If the Federal Circuit stays or narrows that order on appeal, importers who have not taken independent action could lose their refund path. The safest strategy is to file your own 19 U.S.C. §1514 protest before your 180-day deadline expires and, if your protest window has closed, to file a 28 U.S.C. §1581(i) action at the CIT before February 20, 2028. Don't rely solely on the universal order to protect your rights.",
 
   // ═════════════════════════════════════════════════════════════════
   // NAVIGATION

@@ -77,6 +77,13 @@ function doPost(e) {
       // Don't fail the main webhook — Sheet row is already saved
     }
 
+    // --- Notify team of new lead ---
+    try {
+      notifyNewLead(data);
+    } catch (notifyErr) {
+      Logger.log("Notification error: " + notifyErr.message);
+    }
+
   } else if (action === "update" && refCode) {
     // --- UPDATE: find existing row by refCode and merge non-empty fields ---
     var dataRange = sheet.getDataRange();
@@ -129,13 +136,20 @@ function doPost(e) {
     var debugSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Debug") || SpreadsheetApp.getActiveSpreadsheet().insertSheet("Debug");
     debugSheet.appendRow([new Date(), "onboardingStep=" + (data.onboardingStep || ""), "email=" + (data.email || "")]);
 
-    // If this is the final submission, send confirmation email
+    // If this is the final submission, send confirmation email + trigger event sequences
     if (data.onboardingStep === "final" && data.email) {
       try {
         sendConfirmationEmail(data);
         debugSheet.appendRow([new Date(), "sendConfirmationEmail completed OK"]);
       } catch (confirmErr) {
         debugSheet.appendRow([new Date(), "sendConfirmationEmail ERROR: " + confirmErr.message]);
+      }
+      // Enroll in any sequences triggered by onboarding_complete
+      try {
+        var props = PropertiesService.getScriptProperties();
+        enrollByEvent(props.getProperty("SUPABASE_URL"), props.getProperty("SUPABASE_SERVICE_KEY"), data.email.trim().toLowerCase(), "onboarding_complete");
+      } catch (evtErr) {
+        debugSheet.appendRow([new Date(), "onboarding_complete event error: " + evtErr.message]);
       }
     } else {
       debugSheet.appendRow([new Date(), "SKIPPED: step not final or no email"]);
@@ -173,6 +187,17 @@ function doPost(e) {
     } catch (refErr) {
       debugSheet.appendRow([new Date(), "sendReferralInvites ERROR: " + refErr.message]);
     }
+
+    // Enroll referrer in any sequences triggered by referral_sent
+    if (data.email) {
+      try {
+        var props = PropertiesService.getScriptProperties();
+        enrollByEvent(props.getProperty("SUPABASE_URL"), props.getProperty("SUPABASE_SERVICE_KEY"), data.email.trim().toLowerCase(), "referral_sent");
+      } catch (evtErr) {
+        debugSheet.appendRow([new Date(), "referral_sent event error: " + evtErr.message]);
+      }
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ status: "ok", action: "referral_invite" }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -230,26 +255,62 @@ function syncLeadToSupabase(data) {
     return;
   }
 
-  // 2. Enroll in the default "Welcome" drip sequence via RPC
-  var rpcResponse = UrlFetchApp.fetch(supabaseUrl + "/rest/v1/rpc/enroll_lead_in_sequence", {
-    method: "post",
-    headers: {
-      "apikey": supabaseKey,
-      "Authorization": "Bearer " + supabaseKey,
-      "Content-Type": "application/json",
-    },
-    payload: JSON.stringify({
-      p_lead_email: email,
-      p_sequence_name: "Welcome",
-    }),
-    muteHttpExceptions: true,
-  });
+  // 2. Enroll in all sequences triggered by "form_submit" event
+  enrollByEvent(supabaseUrl, supabaseKey, email, "form_submit");
+}
 
-  var rpcCode = rpcResponse.getResponseCode();
-  if (rpcCode >= 400) {
-    Logger.log("Supabase enroll RPC failed (" + rpcCode + "): " + rpcResponse.getContentText());
-  } else {
-    Logger.log("Lead enrolled: " + email + " → " + rpcResponse.getContentText());
+
+/**
+ * Look up all enabled sequences with trigger_type='event' matching the given event name,
+ * and enroll the lead in each one.
+ */
+function enrollByEvent(supabaseUrl, supabaseKey, email, eventName) {
+  // Query sequences where trigger_type = 'event' and trigger_config->>'event' = eventName
+  var seqResp = UrlFetchApp.fetch(
+    supabaseUrl + "/rest/v1/email_sequences?trigger_type=eq.event&enabled=eq.true&trigger_config->>event=eq." + encodeURIComponent(eventName) + "&select=name",
+    {
+      method: "get",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": "Bearer " + supabaseKey,
+      },
+      muteHttpExceptions: true,
+    }
+  );
+
+  if (seqResp.getResponseCode() >= 400) {
+    Logger.log("Sequence lookup failed: " + seqResp.getContentText());
+    return;
+  }
+
+  var sequences = JSON.parse(seqResp.getContentText());
+  if (!sequences || sequences.length === 0) {
+    Logger.log("No sequences triggered by event: " + eventName);
+    return;
+  }
+
+  for (var i = 0; i < sequences.length; i++) {
+    var seqName = sequences[i].name;
+    var rpcResponse = UrlFetchApp.fetch(supabaseUrl + "/rest/v1/rpc/enroll_lead_in_sequence", {
+      method: "post",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": "Bearer " + supabaseKey,
+        "Content-Type": "application/json",
+      },
+      payload: JSON.stringify({
+        p_lead_email: email,
+        p_sequence_name: seqName,
+      }),
+      muteHttpExceptions: true,
+    });
+
+    var rpcCode = rpcResponse.getResponseCode();
+    if (rpcCode >= 400) {
+      Logger.log("Enroll in '" + seqName + "' failed (" + rpcCode + "): " + rpcResponse.getContentText());
+    } else {
+      Logger.log("Lead enrolled: " + email + " → " + seqName);
+    }
   }
 }
 
@@ -500,4 +561,28 @@ function sendReferralInvites(data) {
   } catch (trigErr) {
     Logger.log("send-emails trigger error: " + trigErr.message);
   }
+}
+
+
+/**
+ * Send an email notification to the team when a new lead signs up.
+ */
+function notifyNewLead(data) {
+  var name = data.firstName || "Unknown";
+  var email = data.email || "N/A";
+  var company = data.company || "N/A";
+  var industry = data.industry || "N/A";
+  var importRange = data.importRange || "N/A";
+
+  var subject = "New Lead: " + name + " (" + company + ")";
+  var body = "A new lead just registered on Rewind Tariffs.\n\n"
+    + "Name: " + name + "\n"
+    + "Email: " + email + "\n"
+    + "Company: " + company + "\n"
+    + "Industry: " + industry + "\n"
+    + "Annual Import Value: " + importRange + "\n"
+    + "Ref Code: " + (data.refCode || "N/A") + "\n"
+    + "Time: " + new Date().toISOString() + "\n";
+
+  MailApp.sendEmail("info@rewindtariffs.com", subject, body);
 }

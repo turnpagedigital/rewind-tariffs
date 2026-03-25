@@ -1,8 +1,52 @@
 [
   {
+    "title": "CBP Reports Continued Progress on ACE CAPE System for IEEPA Refunds in CIT Filing",
+    "desc": "CBP's latest court filing reveals continued progress on the CAPE (Consolidated Administration and Processing of Entries) refund system, with components now 45\u201380% complete and full deployment targeted for approximately April 2026. Of the 330,000+ importers who paid IEEPA duties, only about 21,000 have completed ACH enrollment \u2014 a prerequisite for receiving electronic refunds. The next major checkpoint is a CIT status conference set for March 31.",
+    "source": "International Trade Insights",
+    "date": "Mar 19, 2026",
+    "tag": "Legal",
+    "url": "https://www.internationaltradeinsights.com/2026/03/cbp-reports-continued-progress-on-ace-cape-system-for-ieepa-refunds-in-cit-filing/",
+    "pubDateRaw": "2026-03-19T00:00:00.000Z",
+    "img": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=240&fit=crop",
+    "fetchedAt": "2026-03-23T00:00:00.000Z"
+  },
+  {
+    "title": "IEEPA Tariff Refunds Likely Not Automatic: Why Importers Need a Refund Strategy",
+    "desc": "CBP has stated directly that not every importer will automatically receive a refund \u2014 three concrete prerequisites must be met: a CIT action covering the importer, an active ACE account, and ACH enrollment for electronic payment. Of the 330,000+ importers who paid IEEPA duties, only approximately 21,000 have enrolled for electronic payment. Importers without these prerequisites should act now to avoid missing refunds.",
+    "source": "Customs & International Trade Law Blog",
+    "date": "Mar 20, 2026",
+    "tag": "Legal",
+    "url": "https://customsandinternationaltradelaw.com/2026/03/20/ieepa-tariff-refunds-likely-not-automatic-why-importers-need-a-refund-strategy/",
+    "pubDateRaw": "2026-03-20T00:00:00.000Z",
+    "img": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=240&fit=crop",
+    "fetchedAt": "2026-03-23T00:00:00.000Z"
+  },
+  {
+    "title": "IEEPA Tariff Refund Uncertainty After Supreme Court Decision: Retailers Face Disclosure and Litigation Risks",
+    "desc": "Class action plaintiffs are mining earnings calls and press releases for importer admissions about refund disposition. SEC disclosure obligations require careful calibration for public companies. Morgan Lewis recommends cross-functional message coordination before further public statements about expected tariff refund amounts or plans.",
+    "source": "Morgan Lewis",
+    "date": "Mar 2026",
+    "tag": "Legal",
+    "url": "https://www.morganlewis.com/pubs/2026/03/ieepa-tariff-refund-uncertainty-after-supreme-court-decision-retailers-face-disclosure-and-litigation-risks",
+    "pubDateRaw": "2026-03-15T00:00:00.000Z",
+    "img": "https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=400&h=240&fit=crop",
+    "fetchedAt": "2026-03-23T00:00:00.000Z"
+  },
+  {
+    "title": "Tracking the Economic Impact of the Trump Tariffs",
+    "desc": "The Tax Foundation's updated analysis finds IEEPA tariffs raised retail prices of imported goods by approximately 7 percentage points. Section 122 replacement tariffs leave a weighted average applied rate of about 12.1%. If Section 122 expires at the 150-day mark, estimated net household cost falls to $450\u2013$570 annually.",
+    "source": "Tax Foundation",
+    "date": "Mar 20, 2026",
+    "tag": "Policy",
+    "url": "https://taxfoundation.org/research/all/federal/trump-tariffs-trade-war/",
+    "pubDateRaw": "2026-03-20T00:00:00.000Z",
+    "img": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=240&fit=crop",
+    "fetchedAt": "2026-03-23T00:00:00.000Z"
+  },
+  {
     "title": "CBP Reveals CAPE System Progress: Automated IEEPA Refund Engine Under Construction",
-    "desc": "A new court filing by CBP Executive Director Brandon Lord reveals that the CAPE (Consolidated Administration and Processing of Entries) system is actively under development within ACE. The four-component system — Claim Portal (70% complete), Mass Processing (40%), Review & Liquidation (80%), and Refund (60%) — will automate the end-to-end IEEPA tariff refund process for importers.",
-    "source": "Court Filing — Atmus Filtration v. United States",
+    "desc": "A new court filing by CBP Executive Director Brandon Lord reveals that the CAPE (Consolidated Administration and Processing of Entries) system is actively under development within ACE. The four-component system \u2014 Claim Portal (70% complete), Mass Processing (40%), Review & Liquidation (80%), and Refund (60%) \u2014 will automate the end-to-end IEEPA tariff refund process for importers.",
+    "source": "Court Filing \u2014 Atmus Filtration v. United States",
     "date": "Mar 12, 2026",
     "tag": "Breaking",
     "url": "https://storage.courtlistener.com/recap/gov.uscourts.cit.19346/gov.uscourts.cit.19346.39.0.pdf",

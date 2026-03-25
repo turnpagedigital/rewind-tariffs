@@ -1,49 +1,23 @@
 -- ============================================================
--- Default Email Templates & Welcome Sequence for Rewind Tariffs
--- Run this in the Supabase SQL Editor AFTER seed-email-tables.sql
+-- UPDATE existing email templates in Supabase to use consistent
+-- dark header + full footer design
 -- ============================================================
--- All templates are fully editable in /admin → Emails → Templates.
--- Placeholders: {{first_name}}, {{company}}, {{unsubscribe_link}}
--- The edge function auto-appends an unsubscribe footer if the
--- template body doesn't already include {{unsubscribe_link}}.
+-- Run this in the Supabase SQL Editor to update templates
+-- that were already seeded with the old minimal design.
+-- ============================================================
+-- The seed file uses ON CONFLICT DO NOTHING, so it won't
+-- overwrite existing rows. This script explicitly UPDATEs them.
 -- ============================================================
 
 
--- ─── Reusable header / footer fragments (for reference) ──────
--- These are inlined into each template below. If you change the
--- design, update ALL templates to keep them consistent.
---
--- HEADER (dark navy #0c0e1a, logo + "Rewind Tariffs" text):
---   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0">
---     <tr><td align="center" style="padding:40px 16px">
---       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
---         <tr><td align="center" style="background-color:#0c0e1a;padding:36px 32px 28px;border-radius:12px 12px 0 0">
---           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
---             <td valign="middle" style="padding-right:12px"><img src="https://rewindtariffs.com/logo-full.png" ... /></td>
---             <td valign="middle"><span ...>Rewind Tariffs</span></td>
---           </tr></table>
---         </td></tr>
---
--- FOOTER (warm gray bg, © + links + social + address):
---   <tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">
---     social icons · site link · unsubscribe · copyright · address
---   </td></tr>
--- ──────────────────────────────────────────────────────────────
+-- ─── 1. WELCOME ───
 
-
--- ─── 1. WELCOME EMAIL (sent immediately on form submission) ───
-
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Welcome',
-  'We received your assessment request',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
   || E'<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">\n'
-  || E'<!-- Dark header -->\n'
   || E'<tr><td align="center" style="background-color:#0c0e1a;padding:36px 32px 28px;border-radius:12px 12px 0 0"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td valign="middle" style="padding-right:12px"><img src="https://rewindtariffs.com/logo-full.png" alt="Rewind Tariffs" height="30" style="display:block;height:30px;width:auto" /></td><td valign="middle"><span style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.02em">Rewind Tariffs</span></td></tr></table></td></tr>\n'
-  || E'<!-- Content -->\n'
   || E'<tr><td style="background-color:#ffffff;padding:40px 36px 36px">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 16px">Hi {{first_name}},</p>\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 16px">Thanks for submitting your information. We''re reviewing your details now and will be in touch within 48 hours with a preliminary assessment of your IEEPA tariff refund eligibility.</p>\n'
@@ -57,34 +31,18 @@ VALUES (
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 4px">Best,</p>\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 0;font-weight:600">The Rewind Tariffs Team</p>\n'
   || E'</td></tr>\n'
-  || E'<!-- Footer -->\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'Thanks for submitting your information. We''re reviewing your details now and will be in touch within 48 hours with a preliminary assessment of your IEEPA tariff refund eligibility.\n\n'
-  || E'In the meantime, here''s what you should know:\n'
-  || E'- The Supreme Court struck down all IEEPA tariffs on Feb. 20, 2026\n'
-  || E'- Over $166 billion in duties may be refundable\n'
-  || E'- Filing deadlines vary by entry — early action protects your rights\n\n'
-  || E'We''ll reach out soon with next steps tailored to your situation.\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Welcome';
 
 
--- ─── 2. FOLLOW-UP: DEADLINE AWARENESS (sent ~48 hours after welcome) ───
+-- ─── 2. DEADLINE AWARENESS ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Deadline Awareness',
-  'Your IEEPA refund deadlines may be closer than you think',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -106,32 +64,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'We wanted to flag something important: the 180-day protest window for IEEPA tariff refunds starts from the date each entry is liquidated. That means your deadlines are staggered — and some may be approaching soon.\n\n'
-  || E'Key steps to protect your refund rights:\n'
-  || E'1. Set up ACE portal access and enable ACH refunds\n'
-  || E'2. Pull entry reports to identify all IEEPA-affected imports\n'
-  || E'3. Track liquidation dates for your earliest entries\n'
-  || E'4. File protective protests before deadlines expire\n\n'
-  || E'If you haven''t already, check out our Data Guide: https://rewindtariffs.com/#data-guide\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Deadline Awareness';
 
 
--- ─── 3. FOLLOW-UP: REFUND PATHWAYS (sent ~5 days after welcome) ───
+-- ─── 3. REFUND PATHWAYS ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Refund Pathways',
-  'Three ways to recover your IEEPA duties',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -141,18 +83,9 @@ VALUES (
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 16px">Hi {{first_name}},</p>\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 16px">We wanted to share a quick overview of the three main refund pathways available to importers after the Supreme Court ruling:</p>\n'
   || E'<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif">\n'
-  || E'<tr style="border-bottom:1px solid #e8e6e1">\n'
-  || E'<td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">CBP Protest</td>\n'
-  || E'<td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">File within 180 days of entry liquidation. This is the most common and direct approach for most importers.</td>\n'
-  || E'</tr>\n'
-  || E'<tr style="border-bottom:1px solid #e8e6e1">\n'
-  || E'<td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">Post-Summary Correction</td>\n'
-  || E'<td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">Available for entries that haven''t been liquidated yet. Filed through the ACE portal.</td>\n'
-  || E'</tr>\n'
-  || E'<tr>\n'
-  || E'<td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">CIT Litigation</td>\n'
-  || E'<td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">Court of International Trade action — broader coverage, up to 2 years from the ruling date.</td>\n'
-  || E'</tr>\n'
+  || E'<tr style="border-bottom:1px solid #e8e6e1"><td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">CBP Protest</td><td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">File within 180 days of entry liquidation. This is the most common and direct approach for most importers.</td></tr>\n'
+  || E'<tr style="border-bottom:1px solid #e8e6e1"><td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">Post-Summary Correction</td><td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">Available for entries that haven''t been liquidated yet. Filed through the ACE portal.</td></tr>\n'
+  || E'<tr><td style="padding:12px 8px;font-weight:600;vertical-align:top;color:#1a1a2e">CIT Litigation</td><td style="padding:12px 8px;font-size:15px;line-height:1.5;color:#1a1a2e">Court of International Trade action — broader coverage, up to 2 years from the ruling date.</td></tr>\n'
   || E'</table>\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 16px">Many trade attorneys recommend combining a CBP protest with a CIT case to keep all options open. The right approach depends on your specific situation.</p>\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:16px;line-height:1.6;color:#1a1a2e;margin:0 0 24px">If you''d like to explore your options, we can connect you with qualified trade counsel. Just reply to this email or visit <a href="https://rewindtariffs.com" style="color:#f25650">rewindtariffs.com</a>.</p>\n'
@@ -161,31 +94,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'We wanted to share a quick overview of the three main refund pathways available to importers after the Supreme Court ruling:\n\n'
-  || E'1. CBP Protest — File within 180 days of entry liquidation. This is the most common and direct approach for most importers.\n\n'
-  || E'2. Post-Summary Correction — Available for entries that haven''t been liquidated yet. Filed through the ACE portal.\n\n'
-  || E'3. CIT Litigation — Court of International Trade action — broader coverage, up to 2 years from the ruling date.\n\n'
-  || E'Many trade attorneys recommend combining a CBP protest with a CIT case to keep all options open. The right approach depends on your specific situation.\n\n'
-  || E'If you''d like to explore your options, we can connect you with qualified trade counsel. Just reply to this email or visit https://rewindtariffs.com\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Refund Pathways';
 
 
--- ─── 4. FOLLOW-UP: CASH ADVANCE OPTION (sent ~10 days after welcome) ───
+-- ─── 4. CASH ADVANCE OPTION ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Cash Advance Option',
-  'Don''t want to wait? Get cash for your refund today',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -208,33 +126,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'We know that waiting for government refunds can take time — and your business may need that capital sooner.\n\n'
-  || E'That''s why we work with capital partners who can purchase your refund receivables at competitive rates. Instead of waiting months (or longer) for CBP to process refunds, you can get cash in hand now.\n\n'
-  || E'How it works:\n'
-  || E'1. We assess your refund claim amount\n'
-  || E'2. Our capital partners make you an offer\n'
-  || E'3. If you accept, you receive funds — typically within days\n\n'
-  || E'There''s no obligation to accept any offer. Many importers use this as a way to redeploy capital into their business while the refund process plays out.\n\n'
-  || E'Interested? Reply to this email or contact us: https://rewindtariffs.com/#contact\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Cash Advance Option';
 
 
--- ─── 5. FINAL FOLLOW-UP: GENTLE NUDGE (sent ~21 days after welcome) ───
+-- ─── 5. FINAL FOLLOW-UP ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Final Follow-Up',
-  '{{first_name}}, still thinking about your tariff refund?',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -256,32 +157,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'We reached out a few weeks ago about your IEEPA tariff refund eligibility. We understand these decisions take time — we just wanted to make sure you know we''re here when you''re ready.\n\n'
-  || E'A quick reminder of what we can help with:\n'
-  || E'- Free assessment of your refund eligibility\n'
-  || E'- Connections to qualified trade attorneys and customs brokers\n'
-  || E'- Cash advance options if you prefer not to wait for CBP\n\n'
-  || E'Keep in mind that protest deadlines are staggered by entry, so earlier action gives you more flexibility.\n\n'
-  || E'If you have any questions at all, just reply to this email. We''re happy to help.\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Final Follow-Up';
 
 
--- ─── 6. BROADCAST: NEWS UPDATE (standalone, for ad hoc broadcasts) ───
+-- ─── 6. NEWS UPDATE ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'News Update',
-  'IEEPA tariff refund update: {{headline}}',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -301,31 +186,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'We have an important update about the IEEPA tariff refund process that may affect your claim:\n\n'
-  || E'[Your update content here — replace this placeholder with the actual news.]\n\n'
-  || E'What this means for you:\n'
-  || E'[Explain the impact and any recommended actions.]\n\n'
-  || E'For more details, visit our News & Research page: https://rewindtariffs.com/#research\n'
-  || E'Or reply to this email with any questions.\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'News Update';
 
 
--- ─── 7. BROADCAST: DEADLINE REMINDER (standalone, for time-sensitive blasts) ───
+-- ─── 7. DEADLINE REMINDER ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Deadline Reminder',
-  'Action needed: IEEPA refund deadline approaching',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -350,34 +220,16 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'This is a time-sensitive reminder: if you imported goods subject to IEEPA tariffs, your protest deadlines may be approaching.\n\n'
-  || E'IMPORTANT: The 180-day protest window is calculated per entry from the liquidation date. Missing a deadline could mean losing your right to a refund on that entry.\n\n'
-  || E'If you haven''t started the process yet, here''s what we recommend:\n'
-  || E'1. Log into your ACE portal and pull entry summary reports\n'
-  || E'2. Identify entries with IEEPA-related HTS codes\n'
-  || E'3. Note the liquidation dates for your earliest entries\n'
-  || E'4. Contact a trade attorney to file protective protests\n\n'
-  || E'Need help getting started? We can connect you with qualified professionals today.\n'
-  || E'Reply to this email or visit https://rewindtariffs.com\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Deadline Reminder';
 
 
--- ─── 8. SUBMISSION CONFIRMATION (sent immediately after final submit) ───
+-- ─── 8. SUBMISSION CONFIRMATION ───
 
-INSERT INTO email_templates (name, subject, html_body, text_body)
-VALUES (
-  'Submission Confirmation',
-  'Your assessment is submitted — we''ll be in touch within 48 hours',
+UPDATE email_templates SET html_body =
   E'<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!--[if mso]><style>table,td{font-family:Arial,sans-serif!important}</style><![endif]--></head>\n'
   || E'<body style="margin:0;padding:0;background-color:#f5f4f0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">\n'
   || E'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0"><tr><td align="center" style="padding:40px 16px">\n'
@@ -399,77 +251,8 @@ VALUES (
   || E'</td></tr>\n'
   || E'<tr><td style="background-color:#faf9f6;padding:24px 36px;border-top:1px solid #e8e6e1;border-radius:0 0 12px 12px;text-align:center">\n'
   || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px"><a href="https://rewindtariffs.com" style="color:#8a8780;text-decoration:none">rewindtariffs.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{unsubscribe_link}}" style="color:#8a8780;text-decoration:none">Unsubscribe</a></p>\n'
-  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0 0 6px">&copy; 2026 Rewind Tariffs</p>\n'
-    || E'</td></tr>\n'
+  || E'<p style="font-family:''DM Sans'',-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,sans-serif;font-size:12px;color:#8a8780;margin:0">&copy; 2026 Rewind Tariffs</p>\n'
+  || E'</td></tr>\n'
   || E'</table></td></tr></table>\n'
-  || E'</body></html>',
-
-  E'Hi {{first_name}},\n\n'
-  || E'Thank you for completing your assessment. We have everything we need to get started.\n\n'
-  || E'A member of our team will reach out to you within 48 hours to discuss your tariff refund eligibility and walk you through the next steps.\n\n'
-  || E'In the meantime, feel free to:\n'
-  || E'- Visit our News & Research page: https://rewindtariffs.com/#research\n'
-  || E'- Review the IEEPA Duty Calculator: https://rewindtariffs.com/#calculator\n'
-  || E'- Reply to this email if you have any questions\n\n'
-  || E'We appreciate your trust in Rewind Tariffs and look forward to helping you recover what''s owed.\n\n'
-  || E'Best,\nThe Rewind Tariffs Team\n\n'
-  || E'---\nrewindtariffs.com | Unsubscribe: {{unsubscribe_link}}\n'
-  || E'© 2026 Rewind Tariffs\n'
-)
-ON CONFLICT (name) DO NOTHING;
-
-
--- ════════════════════════════════════════════════════════════
--- Welcome Drip Sequence (5 steps)
--- ════════════════════════════════════════════════════════════
--- This is the sequence that new leads are auto-enrolled in
--- via google-apps-script.js → enroll_lead_in_sequence('Welcome')
--- ════════════════════════════════════════════════════════════
-
-INSERT INTO email_sequences (name, description, enabled, trigger_type, trigger_config)
-VALUES (
-  'Welcome',
-  'Automated onboarding drip for new assessment leads. 5 emails over 21 days.',
-  true,
-  'event',
-  '{"event": "form_submit"}'::jsonb
-)
-ON CONFLICT (name) DO NOTHING;
-
-
--- Wire up the sequence steps (delay_minutes is from the PREVIOUS step)
--- Step 1: Welcome             → sent immediately (0 min)
--- Step 2: Deadline Awareness   → sent 48h (2880 min) later
--- Step 3: Refund Pathways      → sent 72h (4320 min) after step 2 (day 5)
--- Step 4: Cash Advance Option  → sent 120h (7200 min) after step 3 (day 10)
--- Step 5: Final Follow-Up      → sent 264h (15840 min) after step 4 (day 21)
-
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
-SELECT s.id, t.id, 1, 0
-FROM email_sequences s, email_templates t
-WHERE s.name = 'Welcome' AND t.name = 'Welcome'
-ON CONFLICT (sequence_id, step_order) DO NOTHING;
-
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
-SELECT s.id, t.id, 2, 2880
-FROM email_sequences s, email_templates t
-WHERE s.name = 'Welcome' AND t.name = 'Deadline Awareness'
-ON CONFLICT (sequence_id, step_order) DO NOTHING;
-
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
-SELECT s.id, t.id, 3, 4320
-FROM email_sequences s, email_templates t
-WHERE s.name = 'Welcome' AND t.name = 'Refund Pathways'
-ON CONFLICT (sequence_id, step_order) DO NOTHING;
-
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
-SELECT s.id, t.id, 4, 7200
-FROM email_sequences s, email_templates t
-WHERE s.name = 'Welcome' AND t.name = 'Cash Advance Option'
-ON CONFLICT (sequence_id, step_order) DO NOTHING;
-
-INSERT INTO email_sequence_steps (sequence_id, template_id, step_order, delay_minutes)
-SELECT s.id, t.id, 5, 15840
-FROM email_sequences s, email_templates t
-WHERE s.name = 'Welcome' AND t.name = 'Final Follow-Up'
-ON CONFLICT (sequence_id, step_order) DO NOTHING;
+  || E'</body></html>'
+WHERE name = 'Submission Confirmation';
