@@ -30,6 +30,27 @@
       });
     </script>
 
+    <!-- Diagnostic: catch JS errors and blank-page timeout -->
+    <script>
+      window.__RT_DIAG = [];
+      window.onerror = function(m, s, l, c, e) {
+        window.__RT_DIAG.push('onerror: ' + m);
+        var root = document.getElementById('root');
+        if (root) root.innerHTML = '<pre style="padding:20px;font-size:14px;color:red;white-space:pre-wrap;word-break:break-all">' + m + '\n' + s + ':' + l + ':' + c + '</pre>';
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        window.__RT_DIAG.push('rejection: ' + e.reason);
+        var root = document.getElementById('root');
+        if (root) root.innerHTML = '<pre style="padding:20px;font-size:14px;color:red;white-space:pre-wrap;word-break:break-all">Promise rejected: ' + e.reason + '</pre>';
+      });
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.innerHTML.trim() === '') {
+          root.innerHTML = '<pre style="padding:20px;font-size:14px;color:red;white-space:pre-wrap;word-break:break-all">Page failed to render after 8s.\nDiagnostics: ' + JSON.stringify(window.__RT_DIAG) + '\nUA: ' + navigator.userAgent + '</pre>';
+        }
+      }, 8000);
+    </script>
+
     <!-- Primary Meta -->
     <title>Rewind Tariffs — IEEPA Tariff Refund Eligibility for U.S. Importers</title>
     <meta name="description" content="The Supreme Court struck down all IEEPA tariffs 6–3. Over $166 billion in duties may be refundable. Free eligibility assessment — we help you understand your options and connect you with qualified counsel or a cash buyer." />
@@ -60,6 +81,9 @@
 
     <!-- Sitemap hint for crawlers -->
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <!-- LLM / agent discovery -->
+    <link rel="author" type="text/plain" href="/llms.txt" />
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">

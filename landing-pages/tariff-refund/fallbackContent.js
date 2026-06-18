@@ -385,9 +385,90 @@ export const FALLBACK = {
   "brokers.benefit_2_desc": "Your clients get a premium experience. We handle everything from assessment to closing — your reputation stays protected.",
   "brokers.benefit_3_title": "No overhead",
   "brokers.benefit_3_desc": "No billable hours, no staff additions, no compliance burden. Just pure referral revenue.",
-  "brokers.cta_title": "Ready to earn referral revenue?",
-  "brokers.cta_description": "Get a free consultation to discuss your referral partnership.",
-  "brokers.cta_button": "Get started",
+  "brokers.cta_title": "Ready to earn extra revenue?",
+  "brokers.cta_description": "Get a free consultation to discuss a referral partnership.",
+  "brokers.cta_button": "Get partnership details",
+
+  // ═════════════════════════════════════════════════════════════════
+  // LIQUIDATE PAGE
+  // ═════════════════════════════════════════════════════════════════
+  "liquidate.page_label": "MONETIZE YOUR CLAIM",
+  "liquidate.page_title": "Turn your tariff refund into cash — today",
+  "liquidate.page_description": "Don't wait years for the government to process your IEEPA refund. Sell your refund rights to a qualified buyer and get paid now, at a competitive rate.",
+  "liquidate.hero_cta": "Check your eligibility",
+
+  "liquidate.why_headline": "Cash now beats a promise later",
+  "liquidate.why_card_1_title": "Immediate liquidity",
+  "liquidate.why_card_1_desc": "Government refunds could take months or years. Selling your rights puts cash on your balance sheet now — no waiting, no uncertainty.",
+  "liquidate.why_card_2_title": "Zero collection risk",
+  "liquidate.why_card_2_desc": "The buyer takes on all risk of government delays, appeals, and procedural complications. Once you sell, you're done.",
+  "liquidate.why_card_3_title": "Competitive rates",
+  "liquidate.why_card_3_desc": "Our buyer network is backed by institutional capital and offers rates that reflect the strength of your claim — not a lowball discount.",
+
+  "liquidate.steps_headline": "Four steps from claim to cash",
+  "liquidate.step_1_title": "Submit your entry data",
+  "liquidate.step_1_desc": "Share your Entry Summary report (ES-003) and proof of IEEPA duty payments. We'll assess your claim size and eligibility within 48 hours.",
+  "liquidate.step_2_title": "Receive a purchase offer",
+  "liquidate.step_2_desc": "Our buyer reviews your documentation and delivers a written offer based on total recoverable duties, claim strength, and current market rates.",
+  "liquidate.step_3_title": "Sign the assignment agreement",
+  "liquidate.step_3_desc": "A straightforward contract that transfers your refund rights to the buyer. No hidden terms, no ongoing obligations. Our team walks you through every clause.",
+  "liquidate.step_4_title": "Get paid",
+  "liquidate.step_4_desc": "Funds are wired directly to your account. Typical turnaround from signed agreement to payment is 5–10 business days.",
+
+  "liquidate.docs_headline": "What documents are required",
+  "liquidate.docs_intro": "Most importers already have these on file. If you're unsure where to find something, our team will help you pull it.",
+  "liquidate.doc_1_title": "Entry Summary Reports (CF 7501 / ES-003)",
+  "liquidate.doc_1_desc": "Your customs entry records showing imported goods, HTS codes, and duties paid. Available through your ACE portal or customs broker.",
+  "liquidate.doc_2_title": "Proof of Duty Payment",
+  "liquidate.doc_2_desc": "Bank statements, ACH receipts, or broker payment confirmations that prove IEEPA duties were actually paid by your company.",
+  "liquidate.doc_3_title": "Commercial Invoices",
+  "liquidate.doc_3_desc": "Supplier invoices for the imported goods tied to each entry. These confirm the transaction value and support the claim.",
+  "liquidate.doc_4_title": "Bills of Lading",
+  "liquidate.doc_4_desc": "Shipping records that tie the imported goods to specific entries. Your freight forwarder or customs broker will have these.",
+  "liquidate.docs_callout": "Don't have all your documents organized? That's normal. Start with your Entry Summary report and we'll guide you through the rest.",
+
+  "liquidate.expect_headline": "What the buyer will ask you to do",
+  "liquidate.expect_intro": "The buyer's due diligence process is straightforward. Here's exactly what to expect so there are no surprises.",
+  "liquidate.expect_1_title": "Confirm you are the Importer of Record",
+  "liquidate.expect_1_desc": "The buyer needs to verify that your company is the IOR on the entries in question — the entity legally entitled to the refund.",
+  "liquidate.expect_2_title": "Provide supply chain contracts",
+  "liquidate.expect_2_desc": "If you have cost-sharing or duty reimbursement arrangements with suppliers or customers, the buyer will review these to confirm no third party has a competing claim.",
+  "liquidate.expect_3_title": "Authorize an audit right",
+  "liquidate.expect_3_desc": "Standard clause allowing the buyer to review your customs entries and liquidation records. This protects both parties and is limited in scope.",
+  "liquidate.expect_4_title": "Execute the assignment agreement",
+  "liquidate.expect_4_desc": "A legal document transferring your refund rights. Our team provides a plain-language summary alongside the formal agreement so you know exactly what you're signing.",
+  "liquidate.expect_5_title": "Notify if you receive a direct refund",
+  "liquidate.expect_5_desc": "If CBP issues a refund directly to you after the assignment, you're contractually obligated to remit the buyer's share within a defined timeframe (typically 10 business days).",
+
+  "liquidate.timeline_headline": "From first call to funds in your account",
+  "liquidate.timeline_1_title": "Initial consultation",
+  "liquidate.timeline_1_desc": "Submit basic entry info and confirm IEEPA exposure. Free, no obligation.",
+  "liquidate.timeline_2_title": "Document collection",
+  "liquidate.timeline_2_desc": "Gather entry summaries, proof of payment, and supporting invoices. Our team helps you pull anything you're missing.",
+  "liquidate.timeline_3_title": "Buyer due diligence",
+  "liquidate.timeline_3_desc": "Buyer reviews documentation, verifies claim strength, and prepares a formal purchase offer.",
+  "liquidate.timeline_4_title": "Offer & agreement",
+  "liquidate.timeline_4_desc": "Review and sign the assignment agreement. Our team walks you through every term.",
+  "liquidate.timeline_5_title": "Payment",
+  "liquidate.timeline_5_desc": "Funds wired to your account. Deal closed.",
+  "liquidate.timeline_footnote": "Timelines are estimates and vary based on documentation readiness and claim complexity. Simpler claims often close faster.",
+
+  "liquidate.faq_1_q": "How much will I get for my refund rights?",
+  "liquidate.faq_1_a": "Purchase prices depend on claim size, documentation quality, and where your entries are in the liquidation process. Larger, well-documented claims with clear legal standing command the strongest rates.",
+  "liquidate.faq_2_q": "What if my entries haven't been liquidated yet?",
+  "liquidate.faq_2_a": "Unliquidated entries are still eligible. In many cases, buyers view these favorably because PSC corrections or direct reliquidation may apply — simplifying the recovery path.",
+  "liquidate.faq_3_q": "Do I need a lawyer?",
+  "liquidate.faq_3_a": "We recommend independent legal counsel for any assignment of refund rights, and we can connect you with experienced trade attorneys if you don't have one. Our team handles the operational side.",
+  "liquidate.faq_4_q": "What happens if the government appeals the CIT ruling?",
+  "liquidate.faq_4_a": "That's the buyer's risk, not yours. Once the assignment is executed and you're paid, you have no further exposure to litigation outcomes.",
+  "liquidate.faq_5_q": "Can I sell only part of my claim?",
+  "liquidate.faq_5_a": "Yes. Partial assignments are possible if you want to sell some entries and hold others. We'll structure the deal to match your preference.",
+  "liquidate.faq_6_q": "Is this the same as factoring?",
+  "liquidate.faq_6_a": "Similar concept. You're converting a future receivable (the government refund) into immediate cash at a discount. The key difference is that the underlying asset is a legal claim against the U.S. Treasury, not a commercial invoice.",
+
+  "liquidate.cta_title": "Ready to get paid?",
+  "liquidate.cta_description": "Find out what your IEEPA refund rights are worth. Free assessment, no obligation, 48-hour response.",
+  "liquidate.cta_button": "Start your assessment",
 
   // ═════════════════════════════════════════════════════════════════
   // ABOUT PAGE
@@ -418,4 +499,19 @@ export const FALLBACK = {
   "contact.info.description": "Whether you're an importer with questions about your refund eligibility, a customs broker looking to partner, or a journalist covering the IEEPA ruling — reach out and we'll get back to you promptly.",
   "contact.info.email": "contact@rewindtariffs.com",
   "contact.info.response_time": "Within 48 hours",
+  "contact.cta.button_text": "Start free assessment",
+
+  // ═════════════════════════════════════════════════════════════════
+  // PRIVACY POLICY
+  // ═════════════════════════════════════════════════════════════════
+  "privacy.meta.title": "Privacy Policy",
+  "privacy.meta.last_updated": "February 26, 2026",
+  "privacy.body.html": "<h2>1. Introduction</h2><p>Rewind Tariffs, a service of Turnpage Digital Markets LLC d/b/a Rewind Tariffs (\u201cwe,\u201d \u201cus,\u201d or \u201cour\u201d), is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you visit our website or use our tariff refund assessment services.</p><p>By using our services, you consent to the practices described in this policy. If you do not agree, please discontinue use of our services.</p><h2>2. Information We Collect</h2><h3>2.1 Information You Provide</h3><p>When you submit our contact or assessment forms, we may collect:</p><ul><li>Contact information: name, email address, phone number</li><li>Business information: company name, industry, annual import value</li><li>Import details: tariff programs, entry status, liquidation status, estimated duties paid</li><li>Role information: whether you are an importer, customs broker, freight forwarder, or other party</li><li>Any additional details you voluntarily provide in form fields</li></ul><h3>2.2 Information Collected Automatically</h3><p>When you visit our website, we may automatically collect certain technical data, including your IP address, browser type and version, operating system, referring URL, pages visited, and the dates and times of your visits. We use this information for analytics and to improve our services.</p><h2>3. Legal Basis for Processing (GDPR)</h2><p>If you are located in the European Economic Area (EEA), United Kingdom, or another jurisdiction with similar data protection laws, we process your personal data on the following legal bases:</p><ul><li><strong>Consent:</strong> When you submit a form or opt in to communications, you provide consent for us to process your data for the stated purposes.</li><li><strong>Legitimate interest:</strong> We may process data to respond to inquiries, improve our services, and ensure security, where such processing does not override your fundamental rights.</li><li><strong>Contractual necessity:</strong> Processing may be necessary to perform a contract or take steps at your request prior to entering a contract.</li><li><strong>Legal obligation:</strong> We may process data to comply with applicable laws and regulations.</li></ul><h2>4. How We Use Your Information</h2><p>We use the information we collect to:</p><ul><li>Evaluate your eligibility for tariff refund recovery services</li><li>Contact you regarding your assessment and potential refund strategies</li><li>Provide, maintain, and improve our services</li><li>Communicate with you about updates, promotions, or changes to our services (with your consent)</li><li>Comply with legal obligations and protect our legal rights</li><li>Analyze website usage to improve user experience</li></ul><h2>5. Data Sharing and Disclosure</h2><p>We do not sell, rent, or trade your personal information. We may share your data with:</p><ul><li><strong>Service providers:</strong> Trusted third parties that help us operate our business (e.g., hosting, analytics, email delivery), bound by confidentiality obligations</li><li><strong>Professional partners:</strong> Licensed customs brokers or trade attorneys who may assist with your refund claim, only with your consent</li><li><strong>Legal requirements:</strong> When required by law, regulation, legal process, or governmental request</li><li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets, with notice to you</li></ul><h2>6. Data Retention</h2><p>We retain your personal data only as long as necessary to fulfill the purposes for which it was collected, including to satisfy legal, accounting, or reporting requirements. Assessment data is typically retained for 3 years from the date of your last interaction, after which it is securely deleted or anonymized.</p><h2>7. Your Rights</h2><p>Depending on your jurisdiction, you may have the following rights regarding your personal data:</p><ul><li><strong>Access:</strong> Request a copy of the personal data we hold about you</li><li><strong>Rectification:</strong> Request correction of inaccurate or incomplete data</li><li><strong>Erasure:</strong> Request deletion of your personal data (\u201cright to be forgotten\u201d)</li><li><strong>Restriction:</strong> Request restriction of processing in certain circumstances</li><li><strong>Portability:</strong> Request transfer of your data in a structured, machine-readable format</li><li><strong>Objection:</strong> Object to processing based on legitimate interests or for direct marketing</li><li><strong>Withdraw consent:</strong> Withdraw consent at any time where processing is based on consent</li></ul><p>To exercise any of these rights, please contact us at privacy@rewindtariffs.com. We will respond within 30 days (or as required by applicable law).</p><h2>8. Cookies and Tracking</h2><p>Our website may use essential cookies to ensure proper functionality. We do not use advertising or third-party tracking cookies without your explicit consent. You can manage cookie preferences through your browser settings.</p><h2>9. Data Security</h2><p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction. These include encryption in transit (TLS/SSL), access controls, and regular security assessments. However, no method of transmission over the internet is 100% secure.</p><h2>10. International Transfers</h2><p>Your data may be transferred to and processed in the United States. If you are located outside the United States, we ensure appropriate safeguards are in place (such as Standard Contractual Clauses) to protect your data in compliance with applicable data protection laws.</p><h2>11. Children\u2019s Privacy</h2><p>Our services are not directed to individuals under the age of 16. We do not knowingly collect personal data from children. If we become aware that we have collected data from a child, we will promptly delete it.</p><h2>12. Changes to This Policy</h2><p>We may update this Privacy Policy from time to time. We will notify you of material changes by posting the updated policy on our website with a new \u201cLast updated\u201d date. Your continued use of our services after changes constitutes acceptance of the updated policy.</p><h2>13. Contact Us</h2><p>If you have questions about this Privacy Policy or wish to exercise your data rights, please contact us:</p><p>Turnpage Digital Markets LLC d/b/a Rewind Tariffs<br/>Email: privacy@rewindtariffs.com</p>",
+
+  // ═════════════════════════════════════════════════════════════════
+  // TERMS OF USE
+  // ═════════════════════════════════════════════════════════════════
+  "terms.meta.title": "Terms of Use",
+  "terms.meta.last_updated": "February 26, 2026",
+  "terms.body.html": "<h2>1. Acceptance of Terms</h2><p>By accessing or using the website and services of Turnpage Digital Markets LLC d/b/a Rewind Tariffs (\u201cwe,\u201d \u201cus,\u201d or \u201cour\u201d), you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use our services.</p><h2>2. Description of Services</h2><p>Rewind Tariffs provides informational resources and assessment tools to help U.S. importers evaluate potential tariff refund recovery opportunities related to duties paid under the International Emergency Economic Powers Act (IEEPA). Our services include eligibility assessments, informational content, and referral to qualified customs brokers and trade professionals.</p><h2>3. No Legal or Financial Advice</h2><p>The information provided on this website and through our services is for general informational purposes only and does not constitute legal, tax, financial, or customs brokerage advice. The content on this site, including references to court decisions, tariff data, and refund estimates, should not be relied upon as a substitute for professional advice. We recommend consulting with a licensed customs broker, attorney, or other qualified professional before making decisions regarding tariff refund claims.</p><h2>4. No Guarantees</h2><p>While we strive to provide accurate and up-to-date information, we make no representations or warranties regarding the accuracy, completeness, or timeliness of any information on our website. Refund amounts, eligibility, timelines, and outcomes may vary based on individual circumstances. Past results do not guarantee future outcomes. Statistics and figures cited on our website are based on publicly available data sources and estimates.</p><h2>5. User Obligations</h2><p>When using our services, you agree to:</p><ul><li>Provide accurate and complete information in any forms or assessments</li><li>Use the website and services only for lawful purposes</li><li>Not attempt to interfere with the proper functioning of the website</li><li>Not impersonate any person or entity, or misrepresent your affiliation</li><li>Not use automated systems (bots, scrapers) to access our services without written permission</li></ul><h2>6. Intellectual Property</h2><p>All content on this website \u2014 including text, graphics, logos, icons, images, data compilations, charts, and software \u2014 is the property of Turnpage Digital Markets LLC d/b/a Rewind Tariffs or its content suppliers and is protected by U.S. and international copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works from our content without prior written consent.</p><h2>7. Third-Party Links and Data</h2><p>Our website may contain links to third-party websites and references to third-party data sources (such as the Penn Wharton Budget Model). We are not responsible for the content, accuracy, or privacy practices of third-party sites. Links and citations are provided for informational convenience only and do not imply endorsement.</p><h2>8. Limitation of Liability</h2><p>To the maximum extent permitted by law, Turnpage Digital Markets LLC d/b/a Rewind Tariffs, its officers, directors, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages \u2014 including loss of profits, data, or business opportunities \u2014 arising from your use of or inability to use our services, even if we have been advised of the possibility of such damages. Our total liability for any claim arising from these terms or our services shall not exceed the amount you paid to us (if any) in the twelve months preceding the claim.</p><h2>9. Indemnification</h2><p>You agree to indemnify and hold harmless Turnpage Digital Markets LLC d/b/a Rewind Tariffs and its officers, directors, employees, and agents from any claims, liabilities, damages, losses, or expenses (including reasonable attorney\u2019s fees) arising from your use of our services, your violation of these Terms, or your violation of any third-party rights.</p><h2>10. Privacy</h2><p>Your use of our services is also governed by our <a href=\"#privacy\">Privacy Policy</a>, which is incorporated into these Terms by reference.</p><h2>11. Modifications</h2><p>We reserve the right to modify these Terms of Use at any time. Changes will be posted on this page with an updated \u201cLast updated\u201d date. Your continued use of our services after any modifications constitutes acceptance of the revised terms. We encourage you to review these Terms periodically.</p><h2>12. Termination</h2><p>We reserve the right to suspend or terminate your access to our services at any time, without notice, for conduct that we believe violates these Terms or is harmful to other users, our business, or third parties.</p><h2>13. Governing Law</h2><p>These Terms of Use are governed by and construed in accordance with the laws of the State of Delaware, without regard to conflict of law principles. Any disputes arising from these Terms or your use of our services shall be resolved in the state or federal courts located in Delaware.</p><h2>14. Severability</h2><p>If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.</p><h2>15. Contact</h2><p>For questions about these Terms of Use, please contact us:</p><p>Turnpage Digital Markets LLC d/b/a Rewind Tariffs<br/>Email: legal@rewindtariffs.com</p>",
 };

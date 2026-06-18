@@ -5,6 +5,7 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react()],
   build: {
+    target: ['es2020', 'safari14'],
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase, handleAuthCallback } from "./supabaseClient.js";
 import { FALLBACK } from "./fallbackContent.js";
 
@@ -623,6 +623,130 @@ const SCHEMA = [
     ],
   },
   {
+    page: "liquidate",
+    label: "Liquidate Page",
+    sections: [
+      {
+        section: "hero",
+        label: "Hero Section",
+        fields: [
+          { key: "page_label", label: "Page label", type: "input" },
+          { key: "page_title", label: "Headline", type: "input" },
+          { key: "page_description", label: "Subheadline", type: "textarea" },
+          { key: "hero_cta", label: "Hero CTA button", type: "input" },
+        ],
+      },
+      {
+        section: "why_liquidate",
+        label: "Why Liquidate",
+        fields: [
+          { key: "why_headline", label: "Section headline", type: "input" },
+          { key: "why_card_1_title", label: "Card 1 — title", type: "input" },
+          { key: "why_card_1_desc", label: "Card 1 — description", type: "textarea" },
+          { key: "why_card_2_title", label: "Card 2 — title", type: "input" },
+          { key: "why_card_2_desc", label: "Card 2 — description", type: "textarea" },
+          { key: "why_card_3_title", label: "Card 3 — title", type: "input" },
+          { key: "why_card_3_desc", label: "Card 3 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "how_it_works",
+        label: "How It Works",
+        fields: [
+          { key: "steps_headline", label: "Section headline", type: "input" },
+          { key: "step_1_title", label: "Step 1 — title", type: "input" },
+          { key: "step_1_desc", label: "Step 1 — description", type: "textarea" },
+          { key: "step_2_title", label: "Step 2 — title", type: "input" },
+          { key: "step_2_desc", label: "Step 2 — description", type: "textarea" },
+          { key: "step_3_title", label: "Step 3 — title", type: "input" },
+          { key: "step_3_desc", label: "Step 3 — description", type: "textarea" },
+          { key: "step_4_title", label: "Step 4 — title", type: "input" },
+          { key: "step_4_desc", label: "Step 4 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "documents",
+        label: "Documents Required",
+        fields: [
+          { key: "docs_headline", label: "Section headline", type: "input" },
+          { key: "docs_intro", label: "Intro text", type: "textarea" },
+          { key: "doc_1_title", label: "Doc 1 — title", type: "input" },
+          { key: "doc_1_desc", label: "Doc 1 — description", type: "textarea" },
+          { key: "doc_2_title", label: "Doc 2 — title", type: "input" },
+          { key: "doc_2_desc", label: "Doc 2 — description", type: "textarea" },
+          { key: "doc_3_title", label: "Doc 3 — title", type: "input" },
+          { key: "doc_3_desc", label: "Doc 3 — description", type: "textarea" },
+          { key: "doc_4_title", label: "Doc 4 — title", type: "input" },
+          { key: "doc_4_desc", label: "Doc 4 — description", type: "textarea" },
+          { key: "docs_callout", label: "Callout box text", type: "textarea" },
+        ],
+      },
+      {
+        section: "buyer_expects",
+        label: "What the Buyer Asks",
+        fields: [
+          { key: "expect_headline", label: "Section headline", type: "input" },
+          { key: "expect_intro", label: "Intro text", type: "textarea" },
+          { key: "expect_1_title", label: "Item 1 — title", type: "input" },
+          { key: "expect_1_desc", label: "Item 1 — description", type: "textarea" },
+          { key: "expect_2_title", label: "Item 2 — title", type: "input" },
+          { key: "expect_2_desc", label: "Item 2 — description", type: "textarea" },
+          { key: "expect_3_title", label: "Item 3 — title", type: "input" },
+          { key: "expect_3_desc", label: "Item 3 — description", type: "textarea" },
+          { key: "expect_4_title", label: "Item 4 — title", type: "input" },
+          { key: "expect_4_desc", label: "Item 4 — description", type: "textarea" },
+          { key: "expect_5_title", label: "Item 5 — title", type: "input" },
+          { key: "expect_5_desc", label: "Item 5 — description", type: "textarea" },
+        ],
+      },
+      {
+        section: "timeline",
+        label: "Timeline",
+        fields: [
+          { key: "timeline_headline", label: "Section headline", type: "input" },
+          { key: "timeline_1_title", label: "Day 1–2 — title", type: "input" },
+          { key: "timeline_1_desc", label: "Day 1–2 — description", type: "textarea" },
+          { key: "timeline_2_title", label: "Day 3–5 — title", type: "input" },
+          { key: "timeline_2_desc", label: "Day 3–5 — description", type: "textarea" },
+          { key: "timeline_3_title", label: "Day 5–10 — title", type: "input" },
+          { key: "timeline_3_desc", label: "Day 5–10 — description", type: "textarea" },
+          { key: "timeline_4_title", label: "Day 10–14 — title", type: "input" },
+          { key: "timeline_4_desc", label: "Day 10–14 — description", type: "textarea" },
+          { key: "timeline_5_title", label: "Day 14–21 — title", type: "input" },
+          { key: "timeline_5_desc", label: "Day 14–21 — description", type: "textarea" },
+          { key: "timeline_footnote", label: "Footnote", type: "textarea" },
+        ],
+      },
+      {
+        section: "faq",
+        label: "FAQ",
+        fields: [
+          { key: "faq_1_q", label: "Q1", type: "input" },
+          { key: "faq_1_a", label: "A1", type: "textarea" },
+          { key: "faq_2_q", label: "Q2", type: "input" },
+          { key: "faq_2_a", label: "A2", type: "textarea" },
+          { key: "faq_3_q", label: "Q3", type: "input" },
+          { key: "faq_3_a", label: "A3", type: "textarea" },
+          { key: "faq_4_q", label: "Q4", type: "input" },
+          { key: "faq_4_a", label: "A4", type: "textarea" },
+          { key: "faq_5_q", label: "Q5", type: "input" },
+          { key: "faq_5_a", label: "A5", type: "textarea" },
+          { key: "faq_6_q", label: "Q6", type: "input" },
+          { key: "faq_6_a", label: "A6", type: "textarea" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "Call to Action",
+        fields: [
+          { key: "cta_title", label: "CTA headline", type: "input" },
+          { key: "cta_description", label: "CTA description", type: "textarea" },
+          { key: "cta_button", label: "CTA button text", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
     page: "about",
     label: "About Page",
     sections: [
@@ -694,6 +818,55 @@ const SCHEMA = [
           { key: "description", label: "Description", type: "textarea" },
           { key: "email", label: "Email address", type: "input" },
           { key: "response_time", label: "Response time", type: "input" },
+        ],
+      },
+      {
+        section: "cta",
+        label: "CTA Button",
+        fields: [
+          { key: "button_text", label: "Button text", type: "input" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "privacy",
+    label: "Privacy Policy",
+    sections: [
+      {
+        section: "meta",
+        label: "Page Settings",
+        fields: [
+          { key: "title", label: "Page title", type: "input" },
+          { key: "last_updated", label: "Last updated date", type: "input" },
+        ],
+      },
+      {
+        section: "body",
+        label: "Content",
+        fields: [
+          { key: "html", label: "Page content", type: "richtext" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "terms",
+    label: "Terms of Use",
+    sections: [
+      {
+        section: "meta",
+        label: "Page Settings",
+        fields: [
+          { key: "title", label: "Page title", type: "input" },
+          { key: "last_updated", label: "Last updated date", type: "input" },
+        ],
+      },
+      {
+        section: "body",
+        label: "Content",
+        fields: [
+          { key: "html", label: "Page content", type: "richtext" },
         ],
       },
     ],
@@ -792,6 +965,95 @@ function LoginScreen() {
   );
 }
 
+/* ─── Rich text editor (contentEditable with toolbar) ─── */
+function RichTextEditor({ value, onChange }) {
+  const editorRef = useRef(null);
+  const lastHtml = useRef(value);
+
+  // Sync value into editor only on mount or when value changes externally
+  useEffect(() => {
+    if (editorRef.current && value !== lastHtml.current) {
+      editorRef.current.innerHTML = value;
+      lastHtml.current = value;
+    }
+  }, [value]);
+
+  // Set initial content
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = value;
+    }
+  }, []); // eslint-disable-line
+
+  const handleInput = () => {
+    const html = editorRef.current.innerHTML;
+    lastHtml.current = html;
+    onChange(html);
+  };
+
+  const exec = (cmd, val) => {
+    document.execCommand(cmd, false, val || null);
+    editorRef.current.focus();
+    handleInput();
+  };
+
+  const isActive = (cmd) => document.queryCommandState(cmd);
+
+  const toolbarBtnStyle = (active) => ({
+    padding: "4px 10px",
+    border: `1px solid ${active ? D : B}`,
+    borderRadius: 6,
+    background: active ? D : "#fff",
+    color: active ? "#fff" : D,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: "pointer",
+    lineHeight: "1",
+  });
+
+  const [, forceRender] = useState(0);
+  const handleSelect = () => forceRender(n => n + 1);
+
+  return (
+    <div style={{ border: `1px solid ${B}`, borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ display: "flex", gap: 4, padding: "8px 10px", borderBottom: `1px solid ${B}`, background: "#fafaf8", flexWrap: "wrap" }}>
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("bold"); }} style={toolbarBtnStyle(isActive("bold"))}>B</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("italic"); }} style={{...toolbarBtnStyle(isActive("italic")), fontStyle: "italic"}}>I</button>
+        <span style={{ width: 1, background: B, margin: "0 4px" }} />
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<h2>"); }} style={toolbarBtnStyle(false)}>H2</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<h3>"); }} style={toolbarBtnStyle(false)}>H3</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<p>"); }} style={toolbarBtnStyle(false)}>P</button>
+        <span style={{ width: 1, background: B, margin: "0 4px" }} />
+        <button type="button" onMouseDown={e => { e.preventDefault(); exec("insertUnorderedList"); }} style={toolbarBtnStyle(isActive("insertUnorderedList"))}>List</button>
+      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        onMouseUp={handleSelect}
+        onKeyUp={handleSelect}
+        style={{
+          padding: "16px 16px",
+          minHeight: 400,
+          fontSize: 14,
+          color: D,
+          lineHeight: "1.7",
+          outline: "none",
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+        }}
+      />
+      <style>{`
+        [contenteditable] h2 { font-size: 20px; font-weight: 700; color: ${D}; margin: 24px 0 8px; }
+        [contenteditable] h3 { font-size: 15px; font-weight: 700; color: ${D}; margin: 18px 0 6px; }
+        [contenteditable] p { margin: 0 0 10px; }
+        [contenteditable] ul { padding-left: 22px; margin: 0 0 10px; }
+        [contenteditable] li { margin-bottom: 4px; }
+      `}</style>
+    </div>
+  );
+}
+
 /* ─── Section editor ─── */
 function SectionEditor({ page, section, fields, data, onSave }) {
   const [local, setLocal] = useState({});
@@ -857,7 +1119,12 @@ function SectionEditor({ page, section, fields, data, onSave }) {
           {fields.map((field) => (
             <div key={field.key} style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: D, display: "block", marginBottom: 5 }}>{field.label}</label>
-              {field.type === "textarea" ? (
+              {field.type === "richtext" ? (
+                <RichTextEditor
+                  value={getVal(field.key)}
+                  onChange={(html) => setVal(field.key, html)}
+                />
+              ) : field.type === "textarea" ? (
                 <textarea
                   value={getVal(field.key)}
                   onChange={(e) => setVal(field.key, e.target.value)}
@@ -1482,6 +1749,427 @@ function EmailManager() {
   );
 }
 
+/* ─── Theme editor ─── */
+function ThemeEditor() {
+  const [tokens, setTokens] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
+  const [edits, setEdits] = useState({});
+
+  useEffect(() => {
+    if (!supabase) return;
+    supabase
+      .from("site_theme")
+      .select("*")
+      .order("token_group")
+      .order("token_key")
+      .then(({ data, error: err }) => {
+        if (err) { setError("Failed to load theme: " + err.message); }
+        else { setTokens(data || []); }
+        setLoading(false);
+      });
+  }, []);
+
+  const handleChange = (key, value) => {
+    setEdits(prev => ({ ...prev, [key]: value }));
+    setSaved(false);
+    setError(null);
+  };
+
+  const handleSave = async () => {
+    if (Object.keys(edits).length === 0) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const upserts = Object.entries(edits).map(([token_key, token_value]) => ({
+        token_key,
+        token_value,
+        updated_at: new Date().toISOString(),
+      }));
+      const { error: err } = await supabase.from("site_theme").upsert(upserts, { onConflict: "token_key" });
+      if (err) {
+        setError("Save failed: " + err.message);
+      } else {
+        setTokens(prev => prev.map(t => edits[t.token_key] !== undefined ? { ...t, token_value: edits[t.token_key] } : t));
+        setEdits({});
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+      }
+    } catch (e) {
+      setError("Save failed: " + (e.message || "Unknown error"));
+    }
+    setSaving(false);
+  };
+
+  const handleDiscard = () => { setEdits({}); setError(null); };
+
+  if (loading) return <div style={{ textAlign: "center", padding: 40, color: M }}>Loading theme...</div>;
+
+  const groups = {};
+  tokens.forEach(t => {
+    const g = t.token_group || "general";
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(t);
+  });
+
+  const editCount = Object.keys(edits).length;
+  const groupLabels = { colors: "Colors", typography: "Typography", spacing: "Spacing", general: "General" };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: D, marginBottom: 4 }}>Theme</h1>
+        <p style={{ fontSize: 14, color: M }}>Edit brand colors, fonts, and design tokens. Changes apply instantly to the live site.</p>
+      </div>
+
+      {Object.entries(groups).map(([group, groupTokens]) => (
+        <div key={group} style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: D, marginBottom: 16, textTransform: "capitalize" }}>
+            {groupLabels[group] || group}
+          </h2>
+          <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${B}`, overflow: "hidden" }}>
+            {groupTokens.map((token, i) => {
+              const currentValue = edits[token.token_key] !== undefined ? edits[token.token_key] : token.token_value;
+              const isEdited = edits[token.token_key] !== undefined;
+              const isColor = token.input_type === "color";
+              return (
+                <div
+                  key={token.token_key}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 16,
+                    padding: "14px 20px",
+                    borderBottom: i < groupTokens.length - 1 ? `1px solid ${B}` : "none",
+                    background: isEdited ? "rgba(242,86,80,0.03)" : "transparent",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: D }}>{token.label || token.token_key}</div>
+                    <div style={{ fontSize: 12, color: M, fontFamily: "monospace" }}>--{token.token_key}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                    {isColor && (
+                      <input
+                        type="color"
+                        value={currentValue.startsWith("#") ? currentValue : "#000000"}
+                        onChange={(e) => handleChange(token.token_key, e.target.value)}
+                        style={{ width: 36, height: 36, border: `1px solid ${B}`, borderRadius: 8, cursor: "pointer", padding: 2 }}
+                      />
+                    )}
+                    <input
+                      type="text"
+                      value={currentValue}
+                      onChange={(e) => handleChange(token.token_key, e.target.value)}
+                      style={{
+                        width: isColor ? 160 : 280,
+                        padding: "8px 12px",
+                        border: `1px solid ${isEdited ? ACC : B}`,
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontFamily: "monospace",
+                        color: D,
+                        background: "#fff",
+                        outline: "none",
+                      }}
+                    />
+                    {isColor && (
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 8,
+                        background: currentValue,
+                        border: `1px solid ${B}`,
+                        flexShrink: 0,
+                      }} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Sticky save bar */}
+      {(editCount > 0 || saved || error) && (
+        <div style={{
+          position: "sticky", bottom: 24,
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "14px 20px", borderRadius: 12,
+          background: "#fff",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
+        }}>
+          {error && <span style={{ fontSize: 13, color: RED, fontWeight: 600 }}>{error}</span>}
+          {saved && <span style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>Saved!</span>}
+          {editCount > 0 && (
+            <>
+              <span style={{ fontSize: 13, fontWeight: 600, color: ACC }}>{editCount} unsaved</span>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  padding: "8px 20px", border: "none", borderRadius: 8,
+                  background: ACC, color: "#fff", fontSize: 13, fontWeight: 600,
+                  cursor: saving ? "wait" : "pointer", opacity: saving ? 0.7 : 1,
+                }}
+              >
+                {saving ? "Saving..." : "Save changes"}
+              </button>
+              <button
+                onClick={handleDiscard}
+                style={{
+                  padding: "8px 16px", border: `1px solid ${B}`, borderRadius: 8,
+                  background: "#fff", color: M, fontSize: 13, fontWeight: 500, cursor: "pointer",
+                }}
+              >
+                Discard
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Page structure editor ─── */
+function PageStructureEditor() {
+  const [pages, setPages] = useState([]);
+  const [sections, setSections] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [expandedPage, setExpandedPage] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const load = async () => {
+      const [pRes, sRes] = await Promise.all([
+        supabase.from("site_pages").select("*").order("sort_order"),
+        supabase.from("site_sections").select("*").order("sort_order"),
+      ]);
+      if (pRes.error) { setError("Failed to load pages: " + pRes.error.message); }
+      else { setPages(pRes.data || []); }
+      if (sRes.error) { setError("Failed to load sections: " + sRes.error.message); }
+      else {
+        const grouped = {};
+        (sRes.data || []).forEach((s) => {
+          if (!grouped[s.page_slug]) grouped[s.page_slug] = [];
+          grouped[s.page_slug].push(s);
+        });
+        setSections(grouped);
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const togglePagePublished = async (slug, current) => {
+    setSaving(true);
+    const { error: err } = await supabase.from("site_pages").update({ published: !current, updated_at: new Date().toISOString() }).eq("slug", slug);
+    if (err) { setError("Failed: " + err.message); }
+    else { setPages((prev) => prev.map((p) => p.slug === slug ? { ...p, published: !current } : p)); setSaved(true); setTimeout(() => setSaved(false), 2000); }
+    setSaving(false);
+  };
+
+  const toggleSectionVisible = async (id, pageSlug, current) => {
+    setSaving(true);
+    const { error: err } = await supabase.from("site_sections").update({ visible: !current, updated_at: new Date().toISOString() }).eq("id", id);
+    if (err) { setError("Failed: " + err.message); }
+    else {
+      setSections((prev) => ({
+        ...prev,
+        [pageSlug]: (prev[pageSlug] || []).map((s) => s.id === id ? { ...s, visible: !current } : s),
+      }));
+      setSaved(true); setTimeout(() => setSaved(false), 2000);
+    }
+    setSaving(false);
+  };
+
+  const moveSectionUp = async (pageSlug, index) => {
+    if (index === 0) return;
+    const pageSections = [...(sections[pageSlug] || [])];
+    const a = pageSections[index];
+    const b = pageSections[index - 1];
+    setSaving(true);
+    const { error: err } = await supabase.from("site_sections").upsert([
+      { id: a.id, page_slug: a.page_slug, section_key: a.section_key, sort_order: b.sort_order, updated_at: new Date().toISOString() },
+      { id: b.id, page_slug: b.page_slug, section_key: b.section_key, sort_order: a.sort_order, updated_at: new Date().toISOString() },
+    ]);
+    if (err) { setError("Failed: " + err.message); }
+    else {
+      const tmpOrder = a.sort_order;
+      a.sort_order = b.sort_order;
+      b.sort_order = tmpOrder;
+      pageSections.sort((x, y) => x.sort_order - y.sort_order);
+      setSections((prev) => ({ ...prev, [pageSlug]: pageSections }));
+      setSaved(true); setTimeout(() => setSaved(false), 2000);
+    }
+    setSaving(false);
+  };
+
+  const moveSectionDown = async (pageSlug, index) => {
+    const pageSections = [...(sections[pageSlug] || [])];
+    if (index >= pageSections.length - 1) return;
+    const a = pageSections[index];
+    const b = pageSections[index + 1];
+    setSaving(true);
+    const { error: err } = await supabase.from("site_sections").upsert([
+      { id: a.id, page_slug: a.page_slug, section_key: a.section_key, sort_order: b.sort_order, updated_at: new Date().toISOString() },
+      { id: b.id, page_slug: b.page_slug, section_key: b.section_key, sort_order: a.sort_order, updated_at: new Date().toISOString() },
+    ]);
+    if (err) { setError("Failed: " + err.message); }
+    else {
+      const tmpOrder = a.sort_order;
+      a.sort_order = b.sort_order;
+      b.sort_order = tmpOrder;
+      pageSections.sort((x, y) => x.sort_order - y.sort_order);
+      setSections((prev) => ({ ...prev, [pageSlug]: pageSections }));
+      setSaved(true); setTimeout(() => setSaved(false), 2000);
+    }
+    setSaving(false);
+  };
+
+  if (loading) return <div style={{ textAlign: "center", padding: 40, color: M }}>Loading pages...</div>;
+
+  const sectionTypeBadge = (type) => {
+    const colors = {
+      hero: { bg: "#dbeafe", color: "#1e40af" },
+      cta: { bg: "#fce7f3", color: "#9d174d" },
+      faq: { bg: "#d1fae5", color: "#065f46" },
+      "feature-cards": { bg: "#fef3c7", color: "#92400e" },
+      "process-steps": { bg: "#e0e7ff", color: "#3730a3" },
+      "stats-grid": { bg: "#ede9fe", color: "#5b21b6" },
+      custom: { bg: "#f3f4f6", color: "#374151" },
+      legal: { bg: "#f3f4f6", color: "#374151" },
+    };
+    const c = colors[type] || colors.custom;
+    return (
+      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: c.bg, color: c.color }}>
+        {type}
+      </span>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: D, marginBottom: 4 }}>Pages & Sections</h1>
+        <p style={{ fontSize: 14, color: M }}>Manage page visibility and section ordering. Toggle sections on/off and reorder them.</p>
+      </div>
+
+      {error && <div style={{ padding: 12, background: "#fef2f2", borderRadius: 10, border: "1px solid #fecaca", fontSize: 13, color: RED, marginBottom: 16 }}>{error}</div>}
+
+      {pages.map((page) => {
+        const isExpanded = expandedPage === page.slug;
+        const pageSections = sections[page.slug] || [];
+        return (
+          <div key={page.slug} style={{ marginBottom: 12 }}>
+            {/* Page header */}
+            <div
+              onClick={() => setExpandedPage(isExpanded ? null : page.slug)}
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "14px 20px", borderRadius: isExpanded ? "12px 12px 0 0" : 12,
+                background: "#fff", border: `1px solid ${B}`,
+                borderBottom: isExpanded ? "none" : `1px solid ${B}`,
+                cursor: "pointer", userSelect: "none",
+              }}
+            >
+              <span style={{ fontSize: 14, transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s", color: M }}>▶</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: D, flex: 1 }}>{page.title}</span>
+              <span style={{ fontSize: 12, color: M, fontFamily: "monospace" }}>/{page.slug === "home" ? "" : page.slug}</span>
+              {page.show_in_nav && <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: "#dbeafe", color: "#1e40af" }}>nav</span>}
+              <button
+                onClick={(e) => { e.stopPropagation(); togglePagePublished(page.slug, page.published); }}
+                disabled={saving}
+                style={{
+                  padding: "4px 12px", borderRadius: 6, border: "none", fontSize: 12, fontWeight: 600,
+                  background: page.published ? "#d1fae5" : "#f3f4f6",
+                  color: page.published ? "#065f46" : "#6b7280",
+                  cursor: "pointer",
+                }}
+              >
+                {page.published ? "Published" : "Draft"}
+              </button>
+            </div>
+
+            {/* Sections list */}
+            {isExpanded && (
+              <div style={{ background: "#fff", border: `1px solid ${B}`, borderTop: "none", borderRadius: "0 0 12px 12px", padding: "8px 0" }}>
+                {pageSections.length === 0 && (
+                  <div style={{ padding: "16px 20px", fontSize: 13, color: M }}>No sections registered for this page.</div>
+                )}
+                {pageSections.map((sec, i) => (
+                  <div
+                    key={sec.id}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "10px 20px",
+                      opacity: sec.visible ? 1 : 0.45,
+                    }}
+                  >
+                    {/* Reorder buttons */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <button
+                        onClick={() => moveSectionUp(page.slug, i)}
+                        disabled={i === 0 || saving}
+                        style={{ border: "none", background: "none", cursor: i === 0 ? "default" : "pointer", fontSize: 10, color: i === 0 ? "#ddd" : M, padding: 0, lineHeight: 1 }}
+                      >▲</button>
+                      <button
+                        onClick={() => moveSectionDown(page.slug, i)}
+                        disabled={i >= pageSections.length - 1 || saving}
+                        style={{ border: "none", background: "none", cursor: i >= pageSections.length - 1 ? "default" : "pointer", fontSize: 10, color: i >= pageSections.length - 1 ? "#ddd" : M, padding: 0, lineHeight: 1 }}
+                      >▼</button>
+                    </div>
+
+                    <span style={{ fontSize: 14, fontWeight: 600, color: D, flex: 1 }}>{sec.label || sec.section_key}</span>
+                    {sectionTypeBadge(sec.section_type)}
+
+                    {/* Visibility toggle */}
+                    <button
+                      onClick={() => toggleSectionVisible(sec.id, page.slug, sec.visible)}
+                      disabled={saving}
+                      style={{
+                        width: 44, height: 24, borderRadius: 12, border: "none",
+                        background: sec.visible ? "#16a34a" : "#d1d5db",
+                        cursor: "pointer", position: "relative", transition: "background 0.15s",
+                      }}
+                    >
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 9, background: "#fff",
+                        position: "absolute", top: 3, left: sec.visible ? 23 : 3,
+                        transition: "left 0.15s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                      }} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Sticky status bar */}
+      {(saving || saved) && (
+        <div style={{
+          position: "fixed", bottom: 0, left: 260, right: 0,
+          padding: "12px 24px", background: saving ? "#fefce8" : "#f0fdf4",
+          borderTop: `1px solid ${saving ? "#fde68a" : "#bbf7d0"}`,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          zIndex: 100, transition: "all 0.2s",
+        }}>
+          {saving ? (
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#92400e" }}>Saving...</span>
+          ) : (
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#16a34a" }}>&#10003; Changes saved</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main admin panel ─── */
 function AdminPanel({ session }) {
   const [activePage, setActivePage] = useState("home");
@@ -1571,6 +2259,47 @@ function AdminPanel({ session }) {
           >
             Emails
           </button>
+          <div style={{ fontSize: 11, fontWeight: 600, color: DARKMUTED, textTransform: "uppercase", letterSpacing: "0.05em", padding: "16px 12px 6px" }}>Design</div>
+          <button
+            onClick={() => setActivePage("theme")}
+            style={{
+              width: "100%",
+              display: "block",
+              padding: "10px 12px",
+              border: "none",
+              borderRadius: 8,
+              background: activePage === "theme" ? DARKCARD : "transparent",
+              color: activePage === "theme" ? "#fff" : DARKMUTED,
+              fontSize: 14,
+              fontWeight: activePage === "theme" ? 600 : 400,
+              cursor: "pointer",
+              textAlign: "left",
+              marginBottom: 2,
+              borderLeft: activePage === "theme" ? `3px solid ${ACC}` : "3px solid transparent",
+            }}
+          >
+            Theme
+          </button>
+          <button
+            onClick={() => setActivePage("pages")}
+            style={{
+              width: "100%",
+              display: "block",
+              padding: "10px 12px",
+              border: "none",
+              borderRadius: 8,
+              background: activePage === "pages" ? DARKCARD : "transparent",
+              color: activePage === "pages" ? "#fff" : DARKMUTED,
+              fontSize: 14,
+              fontWeight: activePage === "pages" ? 600 : 400,
+              cursor: "pointer",
+              textAlign: "left",
+              marginBottom: 2,
+              borderLeft: activePage === "pages" ? `3px solid ${ACC}` : "3px solid transparent",
+            }}
+          >
+            Pages
+          </button>
         </div>
         <div style={{ padding: "16px 20px", borderTop: `1px solid ${DARKBORDER}` }}>
           <div style={{ fontSize: 12, color: DARKMUTED, marginBottom: 4 }}>{session.user?.email}</div>
@@ -1582,14 +2311,18 @@ function AdminPanel({ session }) {
 
       {/* Main content */}
       <div style={{ flex: 1, background: "#f5f4f0", overflow: "auto" }}>
-        <div style={{ maxWidth: isEmailPage ? 900 : 720, margin: "0 auto", padding: "40px 32px" }}>
-          {isEmailPage ? (
+        <div style={{ maxWidth: (isEmailPage || activePage === "theme" || activePage === "pages") ? 900 : 720, margin: "0 auto", padding: "40px 32px" }}>
+          {activePage === "pages" ? (
+            <PageStructureEditor />
+          ) : activePage === "theme" ? (
+            <ThemeEditor />
+          ) : isEmailPage ? (
             <EmailManager />
           ) : (
             <>
               <div style={{ marginBottom: 32 }}>
                 <h1 style={{ fontSize: 24, fontWeight: 700, color: D, marginBottom: 4 }}>{pageSchema?.label}</h1>
-                <p style={{ fontSize: 14, color: M }}>Edit the text content below. Changes appear on the live site within 60 seconds.</p>
+                <p style={{ fontSize: 14, color: M }}>Edit the text content below. Changes appear on the live site instantly.</p>
               </div>
 
               {loadingData ? (

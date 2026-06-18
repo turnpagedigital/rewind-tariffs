@@ -1218,13 +1218,23 @@ function parseCSV(text) {
   });
 }
 
+function toNum(v) {
+  if (v == null) return 0;
+  // Strip $, commas, whitespace, and handle (123.45) as negative
+  const s = String(v).trim().replace(/[$,\s]/g, "");
+  if (!s) return 0;
+  const neg = /^\(.*\)$/.test(s);
+  const n = parseFloat(neg ? s.slice(1, -1) : s);
+  return isNaN(n) ? 0 : (neg ? -n : n);
+}
+
 function analyzeEntries(rows) {
   const entries = {};
   for (const r of rows) {
     const esn = r["Entry Summary Number"] || "";
     const ordinal = parseInt(r["Tariff Ordinal Number"] || "0", 10);
-    const dutyAmt = parseFloat(r["Line Tariff Duty Amount"] || "0");
-    const goodsVal = parseFloat(r["Line Tariff Goods Value Amount"] || "0");
+    const dutyAmt = toNum(r["Line Tariff Duty Amount"]);
+    const goodsVal = toNum(r["Line Tariff Goods Value Amount"]);
     const hts = r["HTS Number - Full"] || "";
     const entryDate = r["Entry Date"] || "";
     const lineNum = r["Entry Summary Line Number"] || "";
